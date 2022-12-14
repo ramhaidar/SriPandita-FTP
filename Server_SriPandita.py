@@ -16,37 +16,133 @@ __status__ = "Production"
 
 import socket
 import os
+import ast
+import threading
 
-TCP_IP = '127.0.0.1'
-TCP_PORT = 48632
-BUFFER_SIZE = 1024
 
-UserName = "ContohUserX"
-NamaFile = "MyFile.bin"
+def ReceiveFilesFromClient():
+    TCP_IP = '127.0.0.1'
+    TCP_PORT = 48632
+    BUFFER_SIZE = 1024
 
-CheckThis = ("Database\\" + UserName)
+    Username = "ContohUserX"
+    NamaFile = "MyFile.bin"
 
-if (os.path.exists(CheckThis) == False):
-    os.mkdir(CheckThis)
+    CheckThis = ("Database\\" + Username)
 
-s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-s.bind((TCP_IP, TCP_PORT))
-s.listen(1)
+    if (os.path.exists(CheckThis) == False):
+        os.mkdir(CheckThis)
 
-while 1:
-    conn, addr = s.accept()
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(1)
 
-    SaveTo = ("Database\\" + UserName + "\\" + NamaFile)
-    print(SaveTo)
-    file = open(SaveTo, 'wb')
-    line = conn.recv(BUFFER_SIZE)
+    while 1:
+        conn, addr = s.accept()
 
-    while (line):
-        file.write(line)
+        SaveTo = ("Database\\" + Username + "\\" + NamaFile)
+        print(SaveTo)
+        file = open(SaveTo, 'wb')
         line = conn.recv(BUFFER_SIZE)
 
-    file.close()
+        while (line):
+            file.write(line)
+            line = conn.recv(BUFFER_SIZE)
+
+        file.close()
+        conn.close()
+        s.listen(0)
+        s.close()
+        break
+
+
+# Fungsi Registrasi User Baru
+def ServerRegister(DATA):
+    # Mendefinisikan NewUsername dan NewPassword dari DATA yang telah diterima
+    NewUsername = ast.literal_eval(DATA)[0]
+    NewPassword = ast.literal_eval(DATA)[1]
+
+    # Membuat File Account.bin Jika File Tersebut Tidak Ditemukan
+    CheckThis = ("Database\Account.bin")
+    if (os.path.exists(CheckThis) == False):
+        file = open(CheckThis, 'w')
+        file.write("[]")
+        file.close()
+
+    # Membaca Isi dari Account.bin
+    Read = open(CheckThis, 'r')
+    ReadString = str(Read.read())
+    Read.close()
+    ReadString = ast.literal_eval(ReadString)
+    Write = open(CheckThis, 'w')
+
+    # Mengecek Apakah Username Sudah Terpakai Atau Belum
+    FoundSameUsername = False
+    try:
+        for i in ReadString:
+            if (NewUsername == i[0]):
+                FoundSameUsername = True
+    except:
+        pass
+
+    if (FoundSameUsername == False):  # Percabangan Jika Username Belum Terpakai
+        AddThis = [NewUsername, NewPassword]
+        ReadString.append(AddThis)
+        Write.write(str(ReadString))
+        Write.close()
+
+        HEADER = "REPLY"
+        DATA = "Anda Telah Berhasil Melakukan Registrasi."
+        SendThis = (HEADER + SecretSeparator + DATA)
+        conn.send(SendThis.encode())
+    else:  # Percabangan Jika Username Sudah Terpakai
+        Write.write(str(ReadString))
+        Write.close()
+
+        HEADER = "REPLY"
+        DATA = "Username Sudah Terpakai!"
+        SendThis = (HEADER + SecretSeparator + DATA)
+        conn.send(SendThis.encode())
+
+
+# Fungsi Login User
+def ServerLogin(DATA):
+    pass
+
+
+if __name__ == '__main__':
+
+    SecretSeparator = "!@#$%^&*"
+
+    CheckThis = ("Database")
+    if (os.path.exists(CheckThis) == False):
+        os.mkdir(CheckThis)
+    TCP_IP = '127.0.0.1'
+    TCP_PORT = 48632
+    BUFFER_SIZE = 1024
+
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind((TCP_IP, TCP_PORT))
+    s.listen(1)
+
+    while 1:
+        conn, addr = s.accept()
+
+        ReceiveThis = conn.recv(BUFFER_SIZE).decode()
+        ReceiveThis = str(ReceiveThis)
+        HEADER, DATA = ReceiveThis.split(SecretSeparator, 1)
+
+        if (HEADER == "REGISTER"):
+            RegisterThread = threading.Thread(
+                target=ServerRegister,
+                args=(DATA,)
+            )
+            RegisterThread.start()
+        elif (HEADER == "LOGIN"):
+            LoginThread = threading.Thread(
+                target=ServerLogin,
+                args=(DATA,)
+            )
+            LoginThread.start()
+
     conn.close()
-    s.listen(0)
-    s.close()
-    break
