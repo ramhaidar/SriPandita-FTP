@@ -38,19 +38,19 @@ def ReceiveFilesFromClient():
     s.listen(1)
 
     while 1:
-        conn, addr = s.accept()
+        Connection, Address = s.accept()
 
         SaveTo = ("Database\\" + Username + "\\" + NamaFile)
         print(SaveTo)
         file = open(SaveTo, 'wb')
-        line = conn.recv(BUFFER_SIZE)
+        line = Connection.recv(BUFFER_SIZE)
 
         while (line):
             file.write(line)
-            line = conn.recv(BUFFER_SIZE)
+            line = Connection.recv(BUFFER_SIZE)
 
         file.close()
-        conn.close()
+        Connection.close()
         s.listen(0)
         s.close()
         break
@@ -91,58 +91,106 @@ def ServerRegister(DATA):
         Write.write(str(ReadString))
         Write.close()
 
-        HEADER = "REPLY"
+        HEADER = "REGISTER_SUCCES"
         DATA = "Anda Telah Berhasil Melakukan Registrasi."
         SendThis = (HEADER + SecretSeparator + DATA)
-        conn.send(SendThis.encode())
+        Connection.send(SendThis.encode())
     else:  # Percabangan Jika Username Sudah Terpakai
         Write.write(str(ReadString))
         Write.close()
 
-        HEADER = "REPLY"
+        HEADER = "REGISTER_FAILED"
         DATA = "Username Sudah Terpakai!"
         SendThis = (HEADER + SecretSeparator + DATA)
-        conn.send(SendThis.encode())
+        Connection.send(SendThis.encode())
 
 
 # Fungsi Login User
 def ServerLogin(DATA):
-    pass
+    # Mendefinisikan NewUsername dan NewPassword dari DATA yang telah diterima
+    Username = ast.literal_eval(DATA)[0]
+    Password = ast.literal_eval(DATA)[1]
+
+    CheckThis = ("Database\Account.bin")
+    if (os.path.exists(CheckThis) == False):
+        file = open(CheckThis, 'w')
+        file.write("[]")
+        file.close()
+
+    # Membaca Isi dari Account.bin
+    Read = open(CheckThis, 'r')
+    ReadString = str(Read.read())
+    Read.close()
+    ReadString = ast.literal_eval(ReadString)
+
+    # Mengecek Apakah Username Ada Pada Account.bin atau Tidak
+    FoundUsername = False
+    try:
+        for i in ReadString:
+            if (Username == i[0]):
+                FoundUsername = True
+                ThePassword = i[1]
+    except:
+        pass
+
+    # Mengecek Apakah Password Login Benar atau Salah
+    if (FoundUsername == True and Password == ThePassword):
+        HEADER = "LOGIN_SUCCES"
+        DATA = "Anda Telah Berhasil Melakukan Login."
+        SendThis = (HEADER + SecretSeparator + DATA)
+        Connection.send(SendThis.encode())
+    else:
+        HEADER = "LOGIN_FAILED"
+        DATA = "Username dan/atau Password Salah!"
+        SendThis = (HEADER + SecretSeparator + DATA)
+        Connection.send(SendThis.encode())
 
 
+# Main Program
 if __name__ == '__main__':
 
+    # Definisi SecretSeparator
     SecretSeparator = "!@#$%^&*"
 
+    # Membuat Folder Database jika Tidak Ditemukan
     CheckThis = ("Database")
     if (os.path.exists(CheckThis) == False):
         os.mkdir(CheckThis)
+
+    # Definisi Koneksi Socket
     TCP_IP = '127.0.0.1'
     TCP_PORT = 48632
     BUFFER_SIZE = 1024
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((TCP_IP, TCP_PORT))
-    s.listen(1)
+    # Menjalankan Koneksi Socket Sebagai Server dan Melakukan Listen Koneksi
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    Socket.bind((TCP_IP, TCP_PORT))
+    Socket.listen(1)
 
+    # Melakukan Perulangan Untuk Menerima Request dari Client Sampai Diberhentikan
     while 1:
-        conn, addr = s.accept()
+        # Mendefinisikan Koneksi dan Alamat
+        Connection, Address = Socket.accept()
 
-        ReceiveThis = conn.recv(BUFFER_SIZE).decode()
+        # Menerima HEADER dan DATA dari Client
+        ReceiveThis = Connection.recv(BUFFER_SIZE).decode()
         ReceiveThis = str(ReceiveThis)
         HEADER, DATA = ReceiveThis.split(SecretSeparator, 1)
 
-        if (HEADER == "REGISTER"):
+        # Menjalankan Tugas Sesuai Request Client
+        if (HEADER == "REGISTER"):  # Register Akun
             RegisterThread = threading.Thread(
                 target=ServerRegister,
                 args=(DATA,)
             )
             RegisterThread.start()
-        elif (HEADER == "LOGIN"):
+        elif (HEADER == "LOGIN"):  # Login Akun
             LoginThread = threading.Thread(
                 target=ServerLogin,
                 args=(DATA,)
             )
             LoginThread.start()
 
-    conn.close()
+    # Menutup Koneksi dan Socket
+    Connection.close()
+    Socket.close()
