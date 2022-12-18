@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-'''Server dari Program FTP'''
+"""Server dari Program FTP"""
 __author__ = "Haidaruddin Muhammad Ramdhan"
 __copyright__ = "© SriPandita 2022"
 __credits__ = ["GitHub",
@@ -30,7 +30,7 @@ def ReceiveFilesFromClient():
 
     CheckThis = ("Database\\" + Username)
 
-    if (os.path.exists(CheckThis) == False):
+    if not os.path.exists(CheckThis):
         os.mkdir(CheckThis)
 
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -45,7 +45,7 @@ def ReceiveFilesFromClient():
         file = open(SaveTo, 'wb')
         line = Connection.recv(BUFFER_SIZE)
 
-        while (line):
+        while line:
             file.write(line)
             line = Connection.recv(BUFFER_SIZE)
 
@@ -57,14 +57,14 @@ def ReceiveFilesFromClient():
 
 
 # Fungsi Registrasi User Baru
-def ServerRegister(DATA):
-    # Mendefinisikan NewUsername dan NewPassword dari DATA yang telah diterima
-    NewUsername = ast.literal_eval(DATA)[0]
-    NewPassword = ast.literal_eval(DATA)[1]
+def ServerRegister(TheData):
+    # Mendefinisikan NewUsername dan NewPassword dari TheData yang telah diterima
+    NewUsername = ast.literal_eval(TheData)[0]
+    NewPassword = ast.literal_eval(TheData)[1]
 
     # Membuat File Account.bin Jika File Tersebut Tidak Ditemukan
-    CheckThis = ("Database\Account.bin")
-    if (os.path.exists(CheckThis) == False):
+    CheckThis = "Database\Account.bin"
+    if not os.path.exists(CheckThis):
         file = open(CheckThis, 'w')
         file.write("[]")
         file.close()
@@ -80,39 +80,39 @@ def ServerRegister(DATA):
     FoundSameUsername = False
     try:
         for i in ReadString:
-            if (NewUsername == i[0]):
+            if NewUsername == i[0]:
                 FoundSameUsername = True
-    except:
+    finally:
         pass
 
-    if (FoundSameUsername == False):  # Percabangan Jika Username Belum Terpakai
+    if not FoundSameUsername:  # Percabangan Jika Username Belum Terpakai
         AddThis = [NewUsername, NewPassword]
         ReadString.append(AddThis)
         Write.write(str(ReadString))
         Write.close()
 
         HEADER = "REGISTER_SUCCES"
-        DATA = "Anda Telah Berhasil Melakukan Registrasi."
-        SendThis = (HEADER + SecretSeparator + DATA)
+        TheData = "Anda Telah Berhasil Melakukan Registrasi."
+        SendThis = (HEADER + SecretSeparator + TheData)
         Connection.send(SendThis.encode())
     else:  # Percabangan Jika Username Sudah Terpakai
         Write.write(str(ReadString))
         Write.close()
 
         HEADER = "REGISTER_FAILED"
-        DATA = "Username Sudah Terpakai!"
-        SendThis = (HEADER + SecretSeparator + DATA)
+        TheData = "Username Sudah Terpakai!"
+        SendThis = (HEADER + SecretSeparator + TheData)
         Connection.send(SendThis.encode())
 
 
 # Fungsi Login User
 def ServerLogin(DATA):
-    # Mendefinisikan NewUsername dan NewPassword dari DATA yang telah diterima
+    # Mendefinisikan NewUsername dan NewPassword dari TheData yang telah diterima
     Username = ast.literal_eval(DATA)[0]
     Password = ast.literal_eval(DATA)[1]
 
-    CheckThis = ("Database\Account.bin")
-    if (os.path.exists(CheckThis) == False):
+    CheckThis = "Database\Account.bin"
+    if not os.path.exists(CheckThis):
         file = open(CheckThis, 'w')
         file.write("[]")
         file.close()
@@ -125,16 +125,17 @@ def ServerLogin(DATA):
 
     # Mengecek Apakah Username Ada Pada Account.bin atau Tidak
     FoundUsername = False
+    ThePassword = ""
     try:
         for i in ReadString:
-            if (Username == i[0]):
+            if Username == i[0]:
                 FoundUsername = True
                 ThePassword = i[1]
-    except:
+    finally:
         pass
 
     # Mengecek Apakah Password Login Benar atau Salah
-    if (FoundUsername == True and Password == ThePassword):
+    if FoundUsername and Password == ThePassword:
         HEADER = "LOGIN_SUCCES"
         DATA = "Anda Telah Berhasil Melakukan Login."
         SendThis = (HEADER + SecretSeparator + DATA)
@@ -153,8 +154,8 @@ if __name__ == '__main__':
     SecretSeparator = "!@#$%^&*"
 
     # Membuat Folder Database jika Tidak Ditemukan
-    CheckThis = ("Database")
-    if (os.path.exists(CheckThis) == False):
+    CheckThis = "Database"
+    if not os.path.exists(CheckThis):
         os.mkdir(CheckThis)
 
     # Definisi Koneksi Socket
@@ -172,19 +173,19 @@ if __name__ == '__main__':
         # Mendefinisikan Koneksi dan Alamat
         Connection, Address = Socket.accept()
 
-        # Menerima HEADER dan DATA dari Client
+        # Menerima HEADER dan TheData dari Client
         ReceiveThis = Connection.recv(BUFFER_SIZE).decode()
         ReceiveThis = str(ReceiveThis)
         HEADER, DATA = ReceiveThis.split(SecretSeparator, 1)
 
         # Menjalankan Tugas Sesuai Request Client
-        if (HEADER == "REGISTER"):  # Register Akun
+        if HEADER == "REGISTER":  # Register Akun
             RegisterThread = threading.Thread(
                 target=ServerRegister,
                 args=(DATA,)
             )
             RegisterThread.start()
-        elif (HEADER == "LOGIN"):  # Login Akun
+        elif HEADER == "LOGIN":  # Login Akun
             LoginThread = threading.Thread(
                 target=ServerLogin,
                 args=(DATA,)
@@ -192,5 +193,5 @@ if __name__ == '__main__':
             LoginThread.start()
 
     # Menutup Koneksi dan Socket
-    Connection.close()
-    Socket.close()
+    # Connection.close()
+    # Socket.close()
