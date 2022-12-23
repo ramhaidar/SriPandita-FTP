@@ -237,6 +237,7 @@ def SendFilesListToClient(Port_Number):
     except:
         pass
     finally:
+        os.remove("FilesListServer.bin")
         del (
             DatabaseFolder,
             F,

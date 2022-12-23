@@ -352,7 +352,7 @@ def LoginMenu_GUI():
 
     LoginMenu = customtkinter.CTkToplevel(root)
     LoginMenu.transient(root)
-    LoginMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    LoginMenu.iconbitmap(".icon/SriPandita-FTP.ico")
     LoginMenu.geometry("400x350")
     LoginMenu.maxsize(400, 350)
     LoginMenu.minsize(400, 350)
@@ -437,7 +437,7 @@ def RegisterMenu_GUI():
 
     RegisterMenu = customtkinter.CTkToplevel(root)
     RegisterMenu.transient(root)
-    RegisterMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    RegisterMenu.iconbitmap(".icon/SriPandita-FTP.ico")
     RegisterMenu.geometry("400x350")
     RegisterMenu.maxsize(400, 350)
     RegisterMenu.minsize(400, 350)
@@ -511,7 +511,7 @@ def SecondMenu_GUI():
 
     if LoginStatus:
         UploadDownload = customtkinter.CTkToplevel(root)
-        UploadDownload.iconbitmap("SriPandita-FTP-icon.ico")
+        UploadDownload.iconbitmap(".icon/SriPandita-FTP.ico")
         UploadDownload.geometry("400x550")
         UploadDownload.maxsize(400, 550)
         UploadDownload.minsize(400, 550)
@@ -522,8 +522,8 @@ def SecondMenu_GUI():
         UploadDownload_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
         UploadDownload_YNTKTS_Image = customtkinter.CTkImage(
-            light_image=PIL.Image.open("SriPandita FTP home.png"),
-            dark_image=PIL.Image.open("SriPandita FTP home.png"),
+            light_image=PIL.Image.open(".icon/SriPandita-FTP-Home.png"),
+            dark_image=PIL.Image.open(".icon/SriPandita-FTP-Home.png"),
             size=(200, 150),
         )
         UploadDownload_YNTKTS = customtkinter.CTkButton(
@@ -566,7 +566,7 @@ def SecondMenu_GUI():
 
         UploadDownload_SeeFiles = customtkinter.CTkButton(
             master=UploadDownload_Frame,
-            text="Files List",
+            text="Server Files List",
             command=KombinasiFungsi(UpdateTheCount, ShowFilesListMenu_GUI),
         )
         UploadDownload_SeeFiles.pack(pady=12, padx=10)
@@ -668,7 +668,7 @@ def ShowDownloadMenu_GUI():
         except:
             pass
         finally:
-            pass
+            os.remove("FilesListClient.bin")
 
     def DownloadSelected():
         """Melakukan Download Untuk File yang di Pilih pada ListBox"""
@@ -688,12 +688,12 @@ def ShowDownloadMenu_GUI():
     DownloadMenu = customtkinter.CTkToplevel(UploadDownload)
     DownloadMenu.transient(UploadDownload)
     DownloadMenu.attributes("-topmost", True)
-    DownloadMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    DownloadMenu.iconbitmap(".icon/SriPandita-FTP.ico")
     DownloadMenu.geometry("400x450")
     DownloadMenu.maxsize(400, 450)
     DownloadMenu.minsize(400, 450)
     DownloadMenu.resizable(False, False)
-    DownloadMenu.wm_title("Upload Files")
+    DownloadMenu.wm_title("Download Files")
     DownloadMenu.config(bg="#1a1a1a")
 
     DownloadMenu_Frame = customtkinter.CTkFrame(DownloadMenu)
@@ -850,7 +850,7 @@ def ShowUploadMenu_GUI():
     UploadMenu = customtkinter.CTkToplevel(UploadDownload)
     UploadMenu.transient(UploadDownload)
     UploadMenu.attributes("-topmost", True)
-    UploadMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    UploadMenu.iconbitmap(".icon/SriPandita-FTP.ico")
     UploadMenu.geometry("400x450")
     UploadMenu.maxsize(400, 450)
     UploadMenu.minsize(400, 450)
@@ -1011,7 +1011,7 @@ def ShowFilesListMenu_GUI():
         except:
             pass
         finally:
-            pass
+            os.remove("FilesListClient.bin")
 
     if FilesListMenu:
         FilesListMenu.destroy()
@@ -1019,12 +1019,12 @@ def ShowFilesListMenu_GUI():
     FilesListMenu = customtkinter.CTkToplevel(UploadDownload)
     FilesListMenu.transient(UploadDownload)
     FilesListMenu.attributes("-topmost", True)
-    FilesListMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    FilesListMenu.iconbitmap(".icon/SriPandita-FTP.ico")
     FilesListMenu.geometry("400x450")
     FilesListMenu.maxsize(400, 450)
     FilesListMenu.minsize(400, 450)
     FilesListMenu.resizable(False, False)
-    FilesListMenu.wm_title("Upload Files")
+    FilesListMenu.wm_title("Server Files Lists")
     FilesListMenu.config(bg="#1a1a1a")
 
     FilesListMenu_Frame = customtkinter.CTkFrame(FilesListMenu)
@@ -1306,7 +1306,7 @@ if __name__ == "__main__":
     FirstTimeConnectServer()
 
     root = customtkinter.CTk()
-    root.iconbitmap("SriPandita-FTP-icon.ico")
+    root.iconbitmap(".icon/SriPandita-FTP.ico")
     root.geometry("400x350")
     root.maxsize(400, 350)
     root.minsize(400, 350)
@@ -1317,8 +1317,8 @@ if __name__ == "__main__":
     root_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
     root_Image = customtkinter.CTkImage(
-        light_image=PIL.Image.open("SriPandita FTP home.png"),
-        dark_image=PIL.Image.open("SriPandita FTP home.png"),
+        light_image=PIL.Image.open(".icon/SriPandita-FTP-Home.png"),
+        dark_image=PIL.Image.open(".icon/SriPandita-FTP-Home.png"),
         size=(200, 150),
     )
     root_ButtonImage = customtkinter.CTkButton(
