@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -27,17 +27,26 @@ __email__ = [
 __status__ = "Production"
 
 import ast
+import ctypes
 import ctypes as ct
 import hashlib
 import os
 import random
 import socket
 import tkinter as tk
+from sys import exit
+from time import sleep
 from tkinter import *
-from tkinter import ttk
 
 import customtkinter
 import PIL.Image
+
+try:
+    import pyi_splash
+except:
+    pass
+finally:
+    pass
 
 
 def GetDownloadUploadCount(Username):
@@ -1264,7 +1273,9 @@ def FirstTimeConnectServer():
         Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         Socket.connect((TCP_IP, TCP_PORT))
     except ConnectionRefusedError:
-        print("Server Tidak Sedang Berjalan...")
+        ctypes.windll.user32.MessageBoxW(
+            0, "Tidak Dapat Terhubung Ke Server...", "Error", 0
+        )
         exit()
     else:
         CLIENT_PORT = int(Socket.recv(BUFFER_SIZE).decode())
@@ -1282,6 +1293,14 @@ def FirstTimeConnectServer():
 
 
 if __name__ == "__main__":
+    try:
+        sleep(1)
+        pyi_splash.close()
+    except:
+        pass
+    finally:
+        pass
+
     CLIENT_PORT = 0
     BUFFER_SIZE = 1024
     SecretSeparator = "!@#$%^&*"

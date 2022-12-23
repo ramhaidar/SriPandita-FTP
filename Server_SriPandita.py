@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.0.7"
+__version__ = "0.0.8"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -31,6 +31,15 @@ import os
 import random
 import socket
 import threading
+from sys import exit
+from time import sleep
+
+try:
+    import pyi_splash
+except:
+    pass
+finally:
+    pass
 
 
 def GiveDownloadUploadCount(USERNAME, Connection):
@@ -70,6 +79,7 @@ def ReceiveFileFromClient(FileName, Username, Connection):
 
     Args:
         FileName (str): Nama File yang Akan Diterima
+        Username (str): Username yang Mengirim File
         Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
     """
     global BUFFER_SIZE, LastDATA, SecretSeparator
@@ -138,6 +148,7 @@ def SendFileToClient(FileName, Username, Connection):
 
     Args:
         FileName (str): Nama File yang Akan Dikirim
+        Username (str): Username yang Menerima File
         Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
     """
     global BUFFER_SIZE, LastDATA, SecretSeparator
@@ -244,7 +255,6 @@ def SendFilesListToClient(Port_Number):
             File,
             Line,
             ListsOnUploadFolder,
-            Path,
             TCP_IP_TRANSFER,
             TCP_PORT_TRANSFER,
             TransferSocket,
@@ -318,7 +328,6 @@ def ServerRegister(DATA, Connection):
             ReadString,
             SendThis,
             Write,
-            i,
         )
 
 
@@ -379,7 +388,6 @@ def ServerLogin(DATA, Connection):
             SendThis,
             ThePassword,
             Username,
-            i,
         )
 
 
@@ -557,6 +565,16 @@ def HandleClient(Port_Number):
 
 
 if __name__ == "__main__":
+    try:
+        sleep(2)
+        pyi_splash.close()
+    except:
+        pass
+    finally:
+        pass
+
+    print("Server is Starting...")
+
     BUFFER_SIZE = 1024
     SecretSeparator = "!@#$%^&*"
 
@@ -570,6 +588,8 @@ if __name__ == "__main__":
     Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     Socket.bind((TCP_IP, TCP_PORT))
     Socket.listen(1)
+
+    print("Server is Listening...")
 
     while 1:
         Connection, Address = Socket.accept()
