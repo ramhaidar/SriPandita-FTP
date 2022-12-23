@@ -4,7 +4,10 @@ __author__ = "Haidaruddin Muhammad Ramdhan"
 __copyright__ = "© SriPandita 2022"
 __credits__ = ["GitHub",
                "VisualStudioCode",
-               "https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer"]
+               "https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer",
+               "CustomTkinter: https://github.com/TomSchimansky/CustomTkinter",
+               "Honest Abe: https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter",
+               "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa"]
 __license__ = "GNU General Public License v3.0"
 __version__ = "0.0.1"
 __maintainer__ = ["Muhammad Dimas Rifki Irianto",
@@ -14,14 +17,17 @@ __maintainer__ = ["Muhammad Dimas Rifki Irianto",
 __email__ = "haidaruddinmuhammadr@gmail.com"
 __status__ = "Production"
 
+import os
 import socket
 import hashlib
 import time
 import tkinter as tk
 from tkinter import ttk
+from tkinter import *
 import tkinterDnD  # Importing the tkinterDnD module
 import customtkinter
 from PIL import Image
+import ctypes as ct
 
 
 def SendFilesToServer():
@@ -43,27 +49,6 @@ def SendFilesToServer():
     print('File has been transferred successfully.')
 
     Socket.close()
-
-
-# Menampilkan Menu
-def ShowClientMenu():
-    # Opsi Menu
-    menu_options = {
-        1: 'Register',
-        2: 'Login',
-        3: 'Send File(s) to Server',
-        4: 'Receive File from Server',
-        5: 'Exit',
-    }
-
-    print("[-- FTP Client Menu --]")
-    if LoginStatus:  # Menampilkan Username jika LoginStatus bernilai True
-        print("> Username: ", MyUsername, "\n", sep="")
-    else:  # Menampilkan Status jika LoginStatus bernilai False
-        print("> Status: Belum Login", "\n", sep="")
-
-    for key in menu_options.keys():
-        print(key, '--', menu_options[key])
 
 
 # Fungsi Untuk Registrasi
@@ -195,14 +180,15 @@ def LoginMenu_GUI():
             )
             if MyUsername != "":
                 LoginMenu.destroy()
-                # LoginRegister.destroy()
                 root.withdraw()
-                SecondMenu()
+                SecondMenu_GUI()
         finally:
             pass
 
     if RegisterMenu:
         RegisterMenu.destroy()
+    if LoginMenu:
+        LoginMenu.destroy()
 
     # [Start] Login Menu #
     LoginMenu = customtkinter.CTkToplevel(root)
@@ -217,18 +203,21 @@ def LoginMenu_GUI():
     LoginMenu_Frame = customtkinter.CTkFrame(master=LoginMenu)
     LoginMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    LoginMenu_Label = customtkinter.CTkLabel(master=LoginMenu_Frame, text="Login", font=("Segoe UI", 24))
+    LoginMenu_Label = customtkinter.CTkLabel(
+        master=LoginMenu_Frame, text="Login", font=("Segoe UI", 24))
     LoginMenu_Label.pack(pady=12, padx=10)
 
-    MyUsername = customtkinter.StringVar()
-    LoginMenu_UsernameEntry = customtkinter.CTkEntry(master=LoginMenu_Frame, placeholder_text="Username")
+    LoginMenu_UsernameEntry = customtkinter.CTkEntry(
+        master=LoginMenu_Frame, placeholder_text="Username")
     LoginMenu_UsernameEntry.pack(pady=12, padx=10)
 
-    LoginMenu_PasswordEntry = customtkinter.CTkEntry(master=LoginMenu_Frame, placeholder_text="Login", show="*")
+    LoginMenu_PasswordEntry = customtkinter.CTkEntry(
+        master=LoginMenu_Frame, placeholder_text="Login", show="*")
     LoginMenu_PasswordEntry.pack(pady=12, padx=10)
 
     LastDATA = "Silahkan Masukkan Username dan Password."
-    LoginMenu_Status = customtkinter.CTkLabel(master=LoginMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
+    LoginMenu_Status = customtkinter.CTkLabel(
+        master=LoginMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
 
     LoginMenu_LoginButton = customtkinter.CTkButton(master=LoginMenu_Frame, text="Login",
                                                     command=Login)
@@ -237,6 +226,8 @@ def LoginMenu_GUI():
     LoginMenu_Status.pack(pady=12, padx=10)
 
     LoginMenu.protocol("WM_DELETE_WINDOW", LoginMenu.destroy)
+
+    CenterMyWindow(LoginMenu)
     LoginMenu.mainloop()
     # [End] Login Menu #
 
@@ -261,8 +252,10 @@ def RegisterMenu_GUI():
 
     if LoginMenu:
         LoginMenu.destroy()
+    if RegisterMenu:
+        RegisterMenu.destroy()
 
-    # [Start] Login Menu #
+    # [Start] Register Menu #
     RegisterMenu = customtkinter.CTkToplevel(root)
     RegisterMenu.transient(root)
     RegisterMenu.iconbitmap("SriPandita-FTP-icon.ico")
@@ -275,10 +268,12 @@ def RegisterMenu_GUI():
     RegisterMenu_Frame = customtkinter.CTkFrame(master=RegisterMenu)
     RegisterMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    RegisterMenu_Label = customtkinter.CTkLabel(master=RegisterMenu_Frame, text="Registrasi", font=("Segoe UI", 24))
+    RegisterMenu_Label = customtkinter.CTkLabel(
+        master=RegisterMenu_Frame, text="Register", font=("Segoe UI", 24))
     RegisterMenu_Label.pack(pady=12, padx=10)
 
-    RegisterMenu_NewUsernameEntry = customtkinter.CTkEntry(master=RegisterMenu_Frame, placeholder_text="New Username")
+    RegisterMenu_NewUsernameEntry = customtkinter.CTkEntry(
+        master=RegisterMenu_Frame, placeholder_text="New Username")
     RegisterMenu_NewUsernameEntry.pack(pady=12, padx=10)
 
     RegisterMenu_NewPasswordEntry = customtkinter.CTkEntry(master=RegisterMenu_Frame, placeholder_text="New Password",
@@ -290,7 +285,8 @@ def RegisterMenu_GUI():
     RegisterMenu_PasswordCheckEntry.pack(pady=12, padx=10)
 
     LastDATA = "Silahkan Masukkan Username dan Password."
-    RegisterMenu_Status = customtkinter.CTkLabel(master=RegisterMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
+    RegisterMenu_Status = customtkinter.CTkLabel(
+        master=RegisterMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
 
     RegisterMenu_LoginButton = customtkinter.CTkButton(master=RegisterMenu_Frame, text="Register",
                                                        command=RegisterAndUpdate)
@@ -299,6 +295,8 @@ def RegisterMenu_GUI():
     RegisterMenu_Status.pack(pady=12, padx=10)
 
     RegisterMenu.protocol("WM_DELETE_WINDOW", RegisterMenu.destroy)
+
+    CenterMyWindow(RegisterMenu)
     RegisterMenu.mainloop()
     # [End] Login Menu #
 
@@ -312,7 +310,7 @@ def combine_funcs(*funcs):
     return combined_func
 
 
-def SecondMenu():
+def SecondMenu_GUI():
     if LoginStatus:
         # [Start] Main Menu #
         UploadDownload = customtkinter.CTkToplevel(root)
@@ -321,13 +319,14 @@ def SecondMenu():
         UploadDownload.maxsize(400, 500)
         UploadDownload.minsize(400, 500)
         UploadDownload.resizable(False, False)
-        UploadDownload.wm_title("Yo Ndak Tau Kok Tanya Saya")
+        UploadDownload.wm_title("Main Menu")
 
         UploadDownload_Frame = customtkinter.CTkFrame(master=UploadDownload)
         UploadDownload_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
         UploadDownload_YNTKTS_Image = customtkinter.CTkImage(light_image=Image.open("SriPandita FTP home.png"),
-                                                             dark_image=Image.open("SriPandita FTP home.png"),
+                                                             dark_image=Image.open(
+                                                                 "SriPandita FTP home.png"),
                                                              size=(200, 150))
         UploadDownload_YNTKTS = customtkinter.CTkButton(master=UploadDownload_Frame, image=UploadDownload_YNTKTS_Image,
                                                         text="", border_width=0, corner_radius=0,
@@ -341,7 +340,7 @@ def SecondMenu():
         UploadDownload_Label.pack(pady=12, padx=25)
 
         UploadDownload_UploadFiles = customtkinter.CTkButton(master=UploadDownload_Frame, text="Upload Files",
-                                                             command=RegisterMenu_GUI)
+                                                             command=ShowUploadMenu)
         UploadDownload_UploadFiles.pack(pady=12, padx=10)
 
         UploadDownload_DownloadFiles = customtkinter.CTkButton(master=UploadDownload_Frame, text="Download Files",
@@ -358,9 +357,109 @@ def SecondMenu():
 
         UploadDownload.protocol("WM_DELETE_WINDOW", FullExitClient)
 
+        CenterMyWindow(UploadDownload)
         UploadDownload.mainloop()
 
         # [End] Main Menu #
+
+
+def ShowUploadMenu():
+    global UploadMenu
+
+    UploadFolder = ("Upload Here")
+
+    def OpenTheUploadDirectory():
+        OpenDirectory(UploadFolder)
+
+    def RefreshLists():
+        UploadMenu_ListBox.delete(0, END)
+        ListsOnUploadFolder = os.listdir(UploadFolder)
+        ListsOnUploadFolder = [f for f in os.listdir(
+            UploadFolder) if os.path.isfile(os.path.join(UploadFolder, f))]
+        UploadMenu_ListBox.delete(0, END)
+        for i in ListsOnUploadFolder:
+            UploadMenu_ListBox.insert(END, i)
+
+    def UploadSelected():
+        for i in UploadMenu_ListBox.curselection():
+            print(UploadMenu_ListBox.get(i))
+
+    if UploadMenu:
+        UploadMenu.destroy()
+
+    if not os.path.exists(UploadFolder):
+        os.mkdir(UploadFolder)
+
+    UploadMenu = customtkinter.CTkToplevel(UploadDownload)
+    UploadMenu.transient(UploadDownload)
+    UploadMenu.attributes('-topmost', True)
+    UploadMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    UploadMenu.geometry("400x430")
+    UploadMenu.maxsize(400, 430)
+    UploadMenu.minsize(400, 430)
+    UploadMenu.resizable(False, False)
+    UploadMenu.wm_title("Upload Files")
+    UploadMenu.config(bg="#1a1a1a")
+
+    s = ttk.Style()
+    s.configure("TFrame", bg="#212121")
+    s.configure('Mine.TFrame', background='#212121')
+
+    UploadMenu_Frame = customtkinter.CTkFrame(UploadMenu)
+    UploadMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
+
+    UploadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(
+        UploadMenu_Frame)
+    UploadMenu_SideBySideButton_Frame.pack(side=TOP)
+
+    UploadMenu_OpenDirectory = customtkinter.CTkButton(
+        master=UploadMenu_Frame, text="Open Directory", command=OpenTheUploadDirectory)
+    UploadMenu_OpenDirectory.pack(
+        pady=12, padx=10, expand=True, in_=UploadMenu_SideBySideButton_Frame, side=LEFT)
+
+    UploadMenu_Refresh = customtkinter.CTkButton(
+        master=UploadMenu_Frame, text="Refresh", command=RefreshLists)
+    UploadMenu_Refresh.pack(pady=12, padx=10, expand=True,
+                            in_=UploadMenu_SideBySideButton_Frame, side=LEFT)
+
+    UploadMenu_ListBox_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
+    UploadMenu_ListBox_Frame.pack(pady=12, padx=10, fill="both", expand=True)
+
+    UploadMenu_ListBox_ScrollBar = customtkinter.CTkScrollbar(
+        UploadMenu_ListBox_Frame, width=15)
+
+    UploadMenu_ListBox = tk.Listbox(
+        UploadMenu_ListBox_Frame, bg="#212121", fg="white", selectbackground="#1f538d", width=30, height=15, selectmode=SINGLE)
+    RefreshLists()
+    UploadMenu_ListBox.config(yscrollcommand=UploadMenu_ListBox_ScrollBar.set)
+    UploadMenu_ListBox.pack(pady=12, padx=(12, 0), side=LEFT,
+                            fill="both", expand=True)
+
+    UploadMenu_ListBox_ScrollBar.configure(command=UploadMenu_ListBox.yview)
+    UploadMenu_ListBox_ScrollBar.pack(
+        padx=(0, 12), pady=12, side=RIGHT, fill='y')
+
+    UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(
+        UploadMenu_Frame)
+    UploadMenu_UploadFilesButton_Frame.pack(
+        side=BOTTOM, fill='both', expand=True)
+
+    UploadMenu_UploadFiles = customtkinter.CTkButton(
+        master=UploadMenu_UploadFilesButton_Frame, text="Upload Now", command=UploadSelected)
+    UploadMenu_UploadFiles.pack(
+        pady=12, padx=10, fill='both', expand=True)
+
+    UploadMenu.protocol("WM_DELETE_WINDOW", UploadMenu.destroy)
+
+    DarkMyWindowTitleBar(UploadMenu)
+    CenterMyWindow(UploadMenu)
+    UploadMenu.mainloop()
+
+
+def OpenDirectory(openThis):
+    path = openThis
+    path = os.path.realpath(path)
+    os.startfile(path)
 
 
 def FullExitClient():
@@ -375,6 +474,41 @@ def FullExitClient():
         exit()
 
 
+def CenterMyWindow(win):
+    """
+    centers a tkinter window
+    :param win: the main window or Toplevel window to center
+    """
+    win.update_idletasks()
+    width = win.winfo_width()
+    frm_width = win.winfo_rootx() - win.winfo_x()
+    win_width = width + 2 * frm_width
+    height = win.winfo_height()
+    titlebar_height = win.winfo_rooty() - win.winfo_y()
+    win_height = height + titlebar_height + frm_width
+    x = win.winfo_screenwidth() // 2 - win_width // 2
+    y = win.winfo_screenheight() // 2 - win_height // 2
+    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    win.deiconify()
+
+
+def DarkMyWindowTitleBar(window):
+    """
+    MORE INFO:
+    https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
+    """
+    window.update()
+    DWMWA_USE_IMMERSIVE_DARK_MODE = 20
+    set_window_attribute = ct.windll.dwmapi.DwmSetWindowAttribute
+    get_parent = ct.windll.user32.GetParent
+    hwnd = get_parent(window.winfo_id())
+    rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
+    value = 2
+    value = ct.c_int(value)
+    set_window_attribute(hwnd, rendering_policy,
+                         ct.byref(value), ct.sizeof(value))
+
+
 # Main Program
 if __name__ == '__main__':
     # Definisi SecretSeparator
@@ -385,7 +519,7 @@ if __name__ == '__main__':
 
     # Definisi LoginStatus dan Username
     LoginStatus = False
-    MyUsername = ""
+    MyUsername = ''
 
     # Mengubah Tema Warna CustomTKInter
     customtkinter.set_appearance_mode("dark")
@@ -394,6 +528,8 @@ if __name__ == '__main__':
     # Membuat Reference LoginMenu dan RegisterMenu
     LoginMenu = None
     RegisterMenu = None
+    UploadDownload = None
+    UploadMenu = None
 
     # [Start] Main Menu #
     root = customtkinter.CTk()
@@ -412,7 +548,8 @@ if __name__ == '__main__':
     # LoginRegister_Label.pack(pady=12, padx=25)
 
     root_Image = customtkinter.CTkImage(light_image=Image.open("SriPandita FTP home.png"),
-                                        dark_image=Image.open("SriPandita FTP home.png"),
+                                        dark_image=Image.open(
+                                            "SriPandita FTP home.png"),
                                         size=(200, 150))
     root_ButtonImage = customtkinter.CTkButton(master=root_Frame, image=root_Image,
                                                text="", border_width=0, corner_radius=0, fg_color="transparent",
@@ -429,6 +566,7 @@ if __name__ == '__main__':
 
     root.protocol("WM_DELETE_WINDOW", root.destroy)
 
+    CenterMyWindow(root)
     root.mainloop()
 
     # [End] Main Menu #
