@@ -1,179 +1,339 @@
 #!/usr/bin/env python
-"""Client dari Program FTP"""
+"""Client dari Program FTP SriPandita"""
 __author__ = "Haidaruddin Muhammad Ramdhan"
 __copyright__ = "© SriPandita 2022"
-__credits__ = ["GitHub",
-               "VisualStudioCode",
-               "https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer",
-               "CustomTkinter: https://github.com/TomSchimansky/CustomTkinter",
-               "Honest Abe: https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter",
-               "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa"]
+__credits__ = [
+    "GitHub",
+    "VisualStudioCode",
+    "Ehmad Saeed: https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer",
+    "Tom Schimansky: https://github.com/TomSchimansky/CustomTkinter",
+    "Honest Abe: https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter",
+    "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
+]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.0.1"
-__maintainer__ = ["Muhammad Dimas Rifki Irianto",
-                  "Ahmad Fasya Adila",
-                  "Haidaruddin Muhammad Ramdhan",
-                  "Muhammad Hiksal Daeng Jusuf Bauw"]
-__email__ = "haidaruddinmuhammadr@gmail.com"
+__version__ = "0.0.7"
+__maintainer__ = [
+    {"Muhammad Dimas Rifki Irianto": "1301204112"},
+    {"Ahmad Fasya Adila": "1301204231"},
+    {"Haidaruddin Muhammad Ramdhan": "1301204459"},
+    {"Muhammad Hiksal Daeng Jusuf Bauw": "1301204416"},
+]
+__email__ = [
+    "dimasrfq@student.telkomuniversity.ac.id",
+    "ahmadfasya@student.telkomuniversity.ac.id",
+    "haidarx@student.telkomuniversity.ac.id",
+    "hiksal@student.telkomuniversity.ac.id",
+]
 __status__ = "Production"
 
-import os
-import socket
-import hashlib
-import time
-import tkinter as tk
-from tkinter import ttk
-from tkinter import *
-import tkinterDnD  # Importing the tkinterDnD module
-import customtkinter
-from PIL import Image
+import ast
 import ctypes as ct
+import hashlib
+import os
+import random
+import socket
+import tkinter as tk
+from tkinter import *
+from tkinter import ttk
+
+import customtkinter
+import PIL.Image
 
 
-def SendFilesToServer():
-    TCP_IP = '127.0.0.1'
-    TCP_PORT = 48632
-    BUFFER_SIZE = 1024
+def GetDownloadUploadCount(Username):
+    """Meminta Statistik Upload dan Download Milik User dari Server
+
+    Args:
+        Username (str): Username yang Akan diminta Statistik Download dan Uploadnya
+    """
+    global DownloadCount, UploadCount
+
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = CLIENT_PORT
 
     Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     Socket.connect((TCP_IP, TCP_PORT))
 
-    file = open('MyFile.bin', 'rb')
-    line = file.read(BUFFER_SIZE)
-
-    while line:
-        Socket.send(line)
-        line = file.read(BUFFER_SIZE)
-
-    file.close()
-    print('File has been transferred successfully.')
-
-    Socket.close()
-
-
-# Fungsi Untuk Registrasi
-def ClientRegister(NewUsername, NewPassword, PasswordCheck):
-    # Mendefinisikan Variabel Global
-    global SecretSeparator, LastDATA
-
-    # Input Username
-    # NewUsername = str(input("Masukkan Username: "))
-    # Error Jika Username Kosong
-    if len(NewUsername) == 0:
-        LastDATA = "Username Tidak Boleh Kosong!"
-        return  # Exit Function
-
-    # Input Password
-    # NewPassword = str(getpass("Masukkan Password Baru: "))
-    # Error Jika Panjang Password Kurang dari 8 Karakter
-    if len(NewPassword) < 8:
-        LastDATA = "Password Harus Memiliki 8 Karakter atau Lebih!"
-        return  # Exit Function
-
-    # Input Password Untuk Konfirmasi
-    # PasswordCheck = str(getpass("Masukkan Password Lagi: "))
-    # Error Jika Kedua Input Password Tidak Sama
-    if NewPassword != PasswordCheck:
-        LastDATA = "Password tidak cocok!"
-        return  # Exit Function
-
-    # Convert Password ke MD5 Hash
-    NewPassword = hashlib.md5(NewPassword.encode('utf-8')).hexdigest()
-
-    # Mendifinisikan Koneksi Socket
-    TCP_IP = '127.0.0.1'
-    TCP_PORT = 48632
-    BUFFER_SIZE = 1024
-    HEADER = "REGISTER"
-    RegistrationData = [NewUsername, NewPassword]
-    SendThis = (HEADER + SecretSeparator + str(RegistrationData))
-
-    # Melakukan Koneksi ke Server
-    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    Socket.connect((TCP_IP, TCP_PORT))
-
-    # Mengirim TheData Registrasi ke Server
+    HEADER = "GET_USER_STATS"
+    SendThis = HEADER + SecretSeparator + Username
     Socket.send(SendThis.encode())
 
-    # Menerima RESPONSE dari Server
     RESPONSE = Socket.recv(BUFFER_SIZE).decode()
     RESPONSE = str(RESPONSE)
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
 
-    # Mengoutputkan Response dari Server
-    # print(DATA, sep="")
+    if HEADER == "GIVE_STATS":
+        DATA = ast.literal_eval(DATA)
 
-    # Menutup Koneksi Socket
+    DownloadCount = DATA[0]
+    UploadCount = DATA[1]
+
     Socket.close()
 
-    # Clearing Variables
+
+def SendFileToServer(TheFile):
+    """Mengirim File ke Server
+
+    Args:
+        TheFile (str): Nama File yang Akan Dikirim
+    """
+    global BUFFER_SIZE, SecretSeparator, LastDATA, CLIENT_PORT, MyUsername
+
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = CLIENT_PORT
+    HEADER = "GET_PORT_FOR_UPLOAD"
+
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    Socket.connect((TCP_IP, TCP_PORT))
+
+    FileName = TheFile
+    SendThis = HEADER + SecretSeparator + FileName + SecretSeparator + MyUsername
+    Socket.send(SendThis.encode())
+
+    RESPONSE = Socket.recv(BUFFER_SIZE).decode()
+    RESPONSE = str(RESPONSE)
+    HEADER, PORT = RESPONSE.split(SecretSeparator, 1)
+    if HEADER != "GIVE_PORT":
+        return
+
+    TCP_IP_TRANSFER = "127.0.0.1"
+    TCP_PORT_TRANSFER = int(PORT)
+
+    TransferSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    TransferSocket.connect((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
+
+    FullPath = "Upload Here\\" + TheFile
+    File = open(FullPath, "rb")
+    Line = File.read(BUFFER_SIZE)
+
+    while Line:
+        TransferSocket.send(Line)
+        Line = File.read(BUFFER_SIZE)
+
+    File.close()
+    TransferSocket.close()
+
+    RESPONSE = Socket.recv(BUFFER_SIZE).decode()
+    RESPONSE = str(RESPONSE)
+    HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
+
+    Socket.close()
+
     try:
         LastDATA = DATA
     finally:
-        del NewUsername, NewPassword, PasswordCheck, TCP_IP, TCP_PORT, BUFFER_SIZE, \
-            HEADER, RegistrationData, SendThis, Socket, RESPONSE, DATA
+        del (
+            DATA,
+            File,
+            FileName,
+            FullPath,
+            HEADER,
+            Line,
+            PORT,
+            RESPONSE,
+            SendThis,
+            Socket,
+            TCP_IP,
+            TCP_IP_TRANSFER,
+            TCP_PORT,
+            TCP_PORT_TRANSFER,
+            TransferSocket,
+        )
 
 
-# Fungsi Untuk Login
-def ClientLogin(Username, Password):
-    # Mendefinisikan Variabel Global
-    global SecretSeparator, LoginStatus, MyUsername, LastDATA, LoginMenu, RegisterMenu, root
+def GetFileFromServer(TheFile):
+    """Mengunduh File dari Server
 
-    # Convert Password ke MD5 Hash
-    Password = hashlib.md5(Password.encode('utf-8')).hexdigest()
+    Args:
+        TheFile (str): Nama File yang Ingin di Download
+    """
+    global BUFFER_SIZE, SecretSeparator, LastDATA, CLIENT_PORT, MyUsername
 
-    # Mendifinisikan Koneksi Socket
-    TCP_IP = '127.0.0.1'
-    TCP_PORT = 48632
-    BUFFER_SIZE = 1024
-    HEADER = "LOGIN"
-    LoginData = [Username, Password]
-    SendThis = (HEADER + SecretSeparator + str(LoginData))
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = CLIENT_PORT
+    HEADER = "GET_PORT_FOR_DOWNLOAD"
 
-    # Melakukan Koneksi ke Server
     Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     Socket.connect((TCP_IP, TCP_PORT))
 
-    # Mengirim TheData Registrasi ke Server
+    FileName = TheFile
+    SendThis = HEADER + SecretSeparator + FileName + SecretSeparator + MyUsername
     Socket.send(SendThis.encode())
 
-    # Menerima RESPONSE dari Server
+    RESPONSE = Socket.recv(BUFFER_SIZE).decode()
+    RESPONSE = str(RESPONSE)
+    HEADER, PORT = RESPONSE.split(SecretSeparator, 1)
+    if HEADER != "GIVE_PORT":
+        return
+
+    TCP_IP_TRANSFER = "127.0.0.1"
+    TCP_PORT_TRANSFER = int(PORT)
+
+    TransferSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    TransferSocket.connect((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
+
+    while True:
+        SaveTo = "Download Here\\" + FileName
+        File = open(SaveTo, "wb")
+        Line = TransferSocket.recv(BUFFER_SIZE)
+
+        while Line:
+            File.write(Line)
+            Line = TransferSocket.recv(BUFFER_SIZE)
+
+        File.close()
+        TransferSocket.close()
+        TransferSocket.close()
+        break
+
     RESPONSE = Socket.recv(BUFFER_SIZE).decode()
     RESPONSE = str(RESPONSE)
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
 
-    # Mengubah LoginStatus Sesuai RESPONSE dari Server
+    Socket.close()
+
+    try:
+        LastDATA = DATA
+    finally:
+        del (
+            DATA,
+            File,
+            FileName,
+            HEADER,
+            Line,
+            PORT,
+            RESPONSE,
+            SaveTo,
+            SendThis,
+            Socket,
+            TCP_IP,
+            TCP_IP_TRANSFER,
+            TCP_PORT,
+            TCP_PORT_TRANSFER,
+            TransferSocket,
+        )
+
+
+def ClientRegister(NewUsername, NewPassword, PasswordCheck):
+    """Melakukan Registrasi Client ke Server
+
+    Args:
+        NewUsername (str): Username Baru yang Akan di Daftarkan
+        NewPassword (str): Password Baru yang Akan di Daftarkan
+        PasswordCheck (str): Password Baru yang Akan di Daftarkan
+    """
+    global BUFFER_SIZE, SecretSeparator, LastDATA, CLIENT_PORT
+
+    if len(NewUsername) == 0:
+        LastDATA = "Username Tidak Boleh Kosong!"
+        return
+
+    if len(NewPassword) < 8:
+        LastDATA = "Password Harus Memiliki 8 Karakter atau Lebih!"
+        return
+
+    if NewPassword != PasswordCheck:
+        LastDATA = "Password tidak cocok!"
+        return
+
+    NewPassword = hashlib.md5(NewPassword.encode("utf-8")).hexdigest()
+
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = CLIENT_PORT
+    HEADER = "REGISTER"
+    RegistrationData = [NewUsername, NewPassword]
+    SendThis = HEADER + SecretSeparator + str(RegistrationData)
+
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    Socket.connect((TCP_IP, TCP_PORT))
+
+    Socket.send(SendThis.encode())
+
+    RESPONSE = Socket.recv(BUFFER_SIZE).decode()
+    RESPONSE = str(RESPONSE)
+    HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
+
+    Socket.close()
+
+    try:
+        LastDATA = DATA
+    finally:
+        del (
+            DATA,
+            HEADER,
+            NewPassword,
+            NewUsername,
+            PasswordCheck,
+            RESPONSE,
+            RegistrationData,
+            SendThis,
+            Socket,
+            TCP_IP,
+            TCP_PORT,
+        )
+
+
+def ClientLogin(Username, Password):
+    """Melakukan Login ke Server
+
+    Args:
+        Username (str): Username dari Client
+        Password (str): Password dari Client
+    """
+    global CLIENT_PORT, BUFFER_SIZE, SecretSeparator, LoginStatus
+    global MyUsername, LastDATA, LoginMenu, RegisterMenu
+
+    Password = hashlib.md5(Password.encode("utf-8")).hexdigest()
+
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = CLIENT_PORT
+    HEADER = "LOGIN"
+    LoginData = [Username, Password]
+    SendThis = HEADER + SecretSeparator + str(LoginData)
+
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    Socket.connect((TCP_IP, TCP_PORT))
+
+    Socket.send(SendThis.encode())
+
+    RESPONSE = Socket.recv(BUFFER_SIZE).decode()
+    RESPONSE = str(RESPONSE)
+    HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
+
     global LoginStatus
-    # global Username
     if HEADER == "LOGIN_SUCCES":
         LoginStatus = True
         MyUsername = Username
     if HEADER == "LOGIN_FAILED":
         LoginStatus = False
 
-    # Mengoutputkan Response dari Server
-    # print(DATA, sep="")
-
-    # Menutup Koneksi Socket
     Socket.close()
 
     try:
         LastDATA = DATA
     finally:
-        del Username, Password, TCP_IP, TCP_PORT, BUFFER_SIZE, HEADER, \
-            LoginData, SendThis, Socket, RESPONSE, DATA
+        del (
+            DATA,
+            HEADER,
+            LoginData,
+            Password,
+            RESPONSE,
+            SendThis,
+            Socket,
+            TCP_IP,
+            TCP_PORT,
+            Username,
+        )
 
 
 def LoginMenu_GUI():
-    # Mendefinisikan Variabel Global
+    """Menampilkan GUI dari Menu Login"""
     global MyUsername, LastDATA, LoginMenu, RegisterMenu
 
     def Login():
+        """Perintah yang Dijalankan Ketika Login Button di Tekan"""
         try:
-            ClientLogin(
-                LoginMenu_UsernameEntry.get(),
-                LoginMenu_PasswordEntry.get()
-            )
+            ClientLogin(LoginMenu_UsernameEntry.get(), LoginMenu_PasswordEntry.get())
             LoginMenu_Status.configure(
                 text=LastDATA,
                 font=("Segoe UI", 12),
@@ -190,7 +350,6 @@ def LoginMenu_GUI():
     if LoginMenu:
         LoginMenu.destroy()
 
-    # [Start] Login Menu #
     LoginMenu = customtkinter.CTkToplevel(root)
     LoginMenu.transient(root)
     LoginMenu.iconbitmap("SriPandita-FTP-icon.ico")
@@ -204,23 +363,28 @@ def LoginMenu_GUI():
     LoginMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
     LoginMenu_Label = customtkinter.CTkLabel(
-        master=LoginMenu_Frame, text="Login", font=("Segoe UI", 24))
+        master=LoginMenu_Frame, text="Login", font=("Segoe UI", 24)
+    )
     LoginMenu_Label.pack(pady=12, padx=10)
 
     LoginMenu_UsernameEntry = customtkinter.CTkEntry(
-        master=LoginMenu_Frame, placeholder_text="Username")
+        master=LoginMenu_Frame, placeholder_text="Username"
+    )
     LoginMenu_UsernameEntry.pack(pady=12, padx=10)
 
     LoginMenu_PasswordEntry = customtkinter.CTkEntry(
-        master=LoginMenu_Frame, placeholder_text="Login", show="*")
+        master=LoginMenu_Frame, placeholder_text="Login", show="*"
+    )
     LoginMenu_PasswordEntry.pack(pady=12, padx=10)
 
     LastDATA = "Silahkan Masukkan Username dan Password."
     LoginMenu_Status = customtkinter.CTkLabel(
-        master=LoginMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
+        master=LoginMenu_Frame, text=LastDATA, font=("Segoe UI", 12)
+    )
 
-    LoginMenu_LoginButton = customtkinter.CTkButton(master=LoginMenu_Frame, text="Login",
-                                                    command=Login)
+    LoginMenu_LoginButton = customtkinter.CTkButton(
+        master=LoginMenu_Frame, text="Login", command=Login
+    )
     LoginMenu_LoginButton.pack(pady=12, padx=10)
 
     LoginMenu_Status.pack(pady=12, padx=10)
@@ -229,19 +393,35 @@ def LoginMenu_GUI():
 
     CenterMyWindow(LoginMenu)
     LoginMenu.mainloop()
-    # [End] Login Menu #
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            Login,
+            LoginMenu_Frame,
+            LoginMenu_Label,
+            LoginMenu_UsernameEntry,
+            LoginMenu_PasswordEntry,
+            LoginMenu_Status,
+            LoginMenu_LoginButton,
+            LoginMenu_Status,
+        )
 
 
 def RegisterMenu_GUI():
-    # Mendefinisikan Variabel Global
-    global LastDATA, LoginMenu, RegisterMenu
+    """Menampilkan GUI dari Menu Registrasi"""
+    global LastDATA, LoginMenu, RegisterMenu, ClientRegister
 
     def RegisterAndUpdate():
+        """Perintah yang Dijalankan Ketika Tombol Register Ditekan"""
         try:
             ClientRegister(
                 RegisterMenu_NewUsernameEntry.get(),
                 RegisterMenu_NewPasswordEntry.get(),
-                RegisterMenu_PasswordCheckEntry,
+                RegisterMenu_PasswordCheckEntry.get(),
             )
             RegisterMenu_Status.configure(
                 text=LastDATA,
@@ -255,7 +435,6 @@ def RegisterMenu_GUI():
     if RegisterMenu:
         RegisterMenu.destroy()
 
-    # [Start] Register Menu #
     RegisterMenu = customtkinter.CTkToplevel(root)
     RegisterMenu.transient(root)
     RegisterMenu.iconbitmap("SriPandita-FTP-icon.ico")
@@ -269,27 +448,33 @@ def RegisterMenu_GUI():
     RegisterMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
     RegisterMenu_Label = customtkinter.CTkLabel(
-        master=RegisterMenu_Frame, text="Register", font=("Segoe UI", 24))
+        master=RegisterMenu_Frame, text="Register", font=("Segoe UI", 24)
+    )
     RegisterMenu_Label.pack(pady=12, padx=10)
 
     RegisterMenu_NewUsernameEntry = customtkinter.CTkEntry(
-        master=RegisterMenu_Frame, placeholder_text="New Username")
+        master=RegisterMenu_Frame, placeholder_text="New Username"
+    )
     RegisterMenu_NewUsernameEntry.pack(pady=12, padx=10)
 
-    RegisterMenu_NewPasswordEntry = customtkinter.CTkEntry(master=RegisterMenu_Frame, placeholder_text="New Password",
-                                                           show="*")
+    RegisterMenu_NewPasswordEntry = customtkinter.CTkEntry(
+        master=RegisterMenu_Frame, placeholder_text="New Password", show="*"
+    )
     RegisterMenu_NewPasswordEntry.pack(pady=12, padx=10)
 
-    RegisterMenu_PasswordCheckEntry = customtkinter.CTkEntry(master=RegisterMenu_Frame,
-                                                             placeholder_text="New Passoword", show="*")
+    RegisterMenu_PasswordCheckEntry = customtkinter.CTkEntry(
+        master=RegisterMenu_Frame, placeholder_text="New Passoword", show="*"
+    )
     RegisterMenu_PasswordCheckEntry.pack(pady=12, padx=10)
 
     LastDATA = "Silahkan Masukkan Username dan Password."
     RegisterMenu_Status = customtkinter.CTkLabel(
-        master=RegisterMenu_Frame, text=LastDATA, font=("Segoe UI", 12))
+        master=RegisterMenu_Frame, text=LastDATA, font=("Segoe UI", 12)
+    )
 
-    RegisterMenu_LoginButton = customtkinter.CTkButton(master=RegisterMenu_Frame, text="Register",
-                                                       command=RegisterAndUpdate)
+    RegisterMenu_LoginButton = customtkinter.CTkButton(
+        master=RegisterMenu_Frame, text="Register", command=RegisterAndUpdate
+    )
     RegisterMenu_LoginButton.pack(pady=12, padx=10)
 
     RegisterMenu_Status.pack(pady=12, padx=10)
@@ -298,61 +483,99 @@ def RegisterMenu_GUI():
 
     CenterMyWindow(RegisterMenu)
     RegisterMenu.mainloop()
-    # [End] Login Menu #
 
-
-# Fungsi Untuk Mengkombinasi Fungsi
-def combine_funcs(*funcs):
-    def combined_func(*args, **kwargs):
-        for f in funcs:
-            f(*args, **kwargs)
-
-    return combined_func
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            RegisterAndUpdate,
+            RegisterMenu_Frame,
+            RegisterMenu_Label,
+            RegisterMenu_LoginButton,
+            RegisterMenu_NewPasswordEntry,
+            RegisterMenu_NewUsernameEntry,
+            RegisterMenu_PasswordCheckEntry,
+            RegisterMenu_Status,
+            RegisterMenu_Status,
+        )
 
 
 def SecondMenu_GUI():
+    """Menampilan GUI Dashboard Setelah Client Berhasil Login"""
+    global LoginStatus, GetDownloadUploadCount, MyUsername
+    global DownloadCount, UploadCount, UploadDownload_Label
+
+    GetDownloadUploadCount(MyUsername)
+
     if LoginStatus:
-        # [Start] Main Menu #
         UploadDownload = customtkinter.CTkToplevel(root)
         UploadDownload.iconbitmap("SriPandita-FTP-icon.ico")
-        UploadDownload.geometry("400x500")
-        UploadDownload.maxsize(400, 500)
-        UploadDownload.minsize(400, 500)
+        UploadDownload.geometry("400x550")
+        UploadDownload.maxsize(400, 550)
+        UploadDownload.minsize(400, 550)
         UploadDownload.resizable(False, False)
         UploadDownload.wm_title("Main Menu")
 
         UploadDownload_Frame = customtkinter.CTkFrame(master=UploadDownload)
         UploadDownload_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-        UploadDownload_YNTKTS_Image = customtkinter.CTkImage(light_image=Image.open("SriPandita FTP home.png"),
-                                                             dark_image=Image.open(
-                                                                 "SriPandita FTP home.png"),
-                                                             size=(200, 150))
-        UploadDownload_YNTKTS = customtkinter.CTkButton(master=UploadDownload_Frame, image=UploadDownload_YNTKTS_Image,
-                                                        text="", border_width=0, corner_radius=0,
-                                                        fg_color="transparent",
-                                                        state="disabled")
+        UploadDownload_YNTKTS_Image = customtkinter.CTkImage(
+            light_image=PIL.Image.open("SriPandita FTP home.png"),
+            dark_image=PIL.Image.open("SriPandita FTP home.png"),
+            size=(200, 150),
+        )
+        UploadDownload_YNTKTS = customtkinter.CTkButton(
+            master=UploadDownload_Frame,
+            image=UploadDownload_YNTKTS_Image,
+            text="",
+            border_width=0,
+            corner_radius=0,
+            fg_color="transparent",
+            state="disabled",
+        )
         UploadDownload_YNTKTS.pack(pady=12, padx=10)
 
-        SecondMenuHeader = ("Username: " + MyUsername)
-        UploadDownload_Label = customtkinter.CTkLabel(master=UploadDownload_Frame, text=SecondMenuHeader,
-                                                      font=("Segoe UI", 18))
+        SecondMenuHeader = (
+            "Username: "
+            + MyUsername
+            + "\nUpload Count: "
+            + str(UploadCount)
+            + "\nDownload Count: "
+            + str(DownloadCount)
+        )
+        UploadDownload_Label = customtkinter.CTkLabel(
+            master=UploadDownload_Frame, text=SecondMenuHeader, font=("Segoe UI", 18)
+        )
         UploadDownload_Label.pack(pady=12, padx=25)
 
-        UploadDownload_UploadFiles = customtkinter.CTkButton(master=UploadDownload_Frame, text="Upload Files",
-                                                             command=ShowUploadMenu)
+        UploadDownload_UploadFiles = customtkinter.CTkButton(
+            master=UploadDownload_Frame,
+            text="Upload Files",
+            command=KombinasiFungsi(UpdateTheCount, ShowUploadMenu_GUI),
+        )
         UploadDownload_UploadFiles.pack(pady=12, padx=10)
 
-        UploadDownload_DownloadFiles = customtkinter.CTkButton(master=UploadDownload_Frame, text="Download Files",
-                                                               command=LoginMenu_GUI)
+        UploadDownload_DownloadFiles = customtkinter.CTkButton(
+            master=UploadDownload_Frame,
+            text="Download Files",
+            command=KombinasiFungsi(UpdateTheCount, ShowDownloadMenu_GUI),
+        )
         UploadDownload_DownloadFiles.pack(pady=12, padx=10)
 
-        UploadDownload_SeeFiles = customtkinter.CTkButton(master=UploadDownload_Frame, text="Files List",
-                                                          command=LoginMenu_GUI)
+        UploadDownload_SeeFiles = customtkinter.CTkButton(
+            master=UploadDownload_Frame,
+            text="Files List",
+            command=KombinasiFungsi(UpdateTheCount, ShowFilesListMenu_GUI),
+        )
         UploadDownload_SeeFiles.pack(pady=12, padx=10)
 
-        UploadDownload_Quit = customtkinter.CTkButton(master=UploadDownload_Frame, text="LogOut and Exit",
-                                                      command=FullExitClient)
+        UploadDownload_Quit = customtkinter.CTkButton(
+            master=UploadDownload_Frame,
+            text="LogOut and Exit",
+            command=KombinasiFungsi(UpdateTheCount, FullExitClient),
+        )
         UploadDownload_Quit.pack(pady=12, padx=10)
 
         UploadDownload.protocol("WM_DELETE_WINDOW", FullExitClient)
@@ -360,29 +583,263 @@ def SecondMenu_GUI():
         CenterMyWindow(UploadDownload)
         UploadDownload.mainloop()
 
-        # [End] Main Menu #
+        try:
+            pass
+        except:
+            pass
+        finally:
+            del (
+                SecondMenuHeader,
+                UploadDownload,
+                UploadDownload_DownloadFiles,
+                UploadDownload_Frame,
+                UploadDownload_Label,
+                UploadDownload_Quit,
+                UploadDownload_SeeFiles,
+                UploadDownload_UploadFiles,
+                UploadDownload_YNTKTS,
+                UploadDownload_YNTKTS_Image,
+            )
 
 
-def ShowUploadMenu():
-    global UploadMenu
+def ShowDownloadMenu_GUI():
+    """Menampilkan GUI Menu Download File"""
+    global DownloadMenu, LastDATA, CheckPortAvailability
 
-    UploadFolder = ("Upload Here")
+    DownloadFolder = "Download Here"
 
     def OpenTheUploadDirectory():
+        """Membuka Folder Download"""
+        OpenDirectory(DownloadFolder)
+
+    def RefreshLists():
+        """Mengupdate Tampilan ListBox dari Window"""
+        TCP_IP = "127.0.0.1"
+        TCP_PORT = CLIENT_PORT
+
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.connect((TCP_IP, TCP_PORT))
+
+        PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
+        while not CheckPortAvailability(PORT_RANDOM_TRANSFER):
+            PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
+
+        HEADER = "GET_FILES_LIST"
+        SendThis = HEADER + SecretSeparator + str(PORT_RANDOM_TRANSFER)
+        Socket.send(SendThis.encode())
+
+        TCP_IP_TRANSFER = "127.0.0.1"
+        TCP_PORT_TRANSFER = PORT_RANDOM_TRANSFER
+
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.bind((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
+        Socket.listen(1)
+
+        while True:
+            Connection_Transfer, Address_Transfer = Socket.accept()
+
+            SaveTo = "FilesListClient.bin"
+            file = open(SaveTo, "wb")
+            line = Connection_Transfer.recv(BUFFER_SIZE)
+
+            while line:
+                file.write(line)
+                line = Connection_Transfer.recv(BUFFER_SIZE)
+
+            file.close()
+            Connection_Transfer.close()
+            Socket.close()
+            break
+
+        with open("FilesListClient.bin", "r") as f:
+            DATA = f.read()
+            f.close()
+
+        DATA = ast.literal_eval(DATA)
+
+        try:
+            DownloadMenu_ListBox.delete(0, END)
+            for i in DATA:
+                DownloadMenu_ListBox.insert(END, i)
+            DownloadMenu_UploadFiles_Label.configure(
+                text=LastDATA,
+                font=("Segoe UI", 12),
+            )
+        except:
+            pass
+        finally:
+            pass
+
+    def DownloadSelected():
+        """Melakukan Download Untuk File yang di Pilih pada ListBox"""
+        for i in DownloadMenu_ListBox.curselection():
+            GetFileFromServer(DownloadMenu_ListBox.get(i))
+        DownloadMenu_UploadFiles_Label.configure(
+            text=LastDATA,
+            font=("Segoe UI", 12),
+        )
+
+    if DownloadMenu:
+        DownloadMenu.destroy()
+
+    if not os.path.exists(DownloadFolder):
+        os.mkdir(DownloadFolder)
+
+    DownloadMenu = customtkinter.CTkToplevel(UploadDownload)
+    DownloadMenu.transient(UploadDownload)
+    DownloadMenu.attributes("-topmost", True)
+    DownloadMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    DownloadMenu.geometry("400x450")
+    DownloadMenu.maxsize(400, 450)
+    DownloadMenu.minsize(400, 450)
+    DownloadMenu.resizable(False, False)
+    DownloadMenu.wm_title("Upload Files")
+    DownloadMenu.config(bg="#1a1a1a")
+
+    DownloadMenu_Frame = customtkinter.CTkFrame(DownloadMenu)
+    DownloadMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
+
+    DownloadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
+    DownloadMenu_SideBySideButton_Frame.pack(side=TOP)
+
+    DownloadMenu_OpenDirectory = customtkinter.CTkButton(
+        master=DownloadMenu_Frame,
+        text="Buka Folder Download",
+        command=OpenTheUploadDirectory,
+    )
+    DownloadMenu_OpenDirectory.pack(
+        pady=12,
+        padx=10,
+        expand=True,
+        in_=DownloadMenu_SideBySideButton_Frame,
+        side=LEFT,
+    )
+
+    DownloadMenu_Refresh = customtkinter.CTkButton(
+        master=DownloadMenu_Frame, text="Refresh", command=RefreshLists
+    )
+    DownloadMenu_Refresh.pack(
+        pady=12,
+        padx=10,
+        expand=True,
+        in_=DownloadMenu_SideBySideButton_Frame,
+        side=LEFT,
+    )
+
+    DownloadMenu_ListBox_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
+    DownloadMenu_ListBox_Frame.pack(pady=12, padx=10, fill="both", expand=True)
+
+    DownloadMenu_ListBox_ScrollBar = customtkinter.CTkScrollbar(
+        DownloadMenu_ListBox_Frame, width=15
+    )
+
+    DownloadMenu_ListBox = tk.Listbox(
+        DownloadMenu_ListBox_Frame,
+        bg="#212121",
+        fg="white",
+        selectbackground="#1f538d",
+        width=30,
+        height=15,
+        selectmode=SINGLE,
+    )
+    RefreshLists()
+    DownloadMenu_ListBox.config(yscrollcommand=DownloadMenu_ListBox_ScrollBar.set)
+    DownloadMenu_ListBox.pack(
+        pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True
+    )
+
+    DownloadMenu_ListBox_ScrollBar.configure(command=DownloadMenu_ListBox.yview)
+    DownloadMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
+
+    DownloadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
+    DownloadMenu_UploadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
+
+    LastDATA = "Pilih File Untuk di Download dari Server"
+    DownloadMenu_UploadFiles_Label = customtkinter.CTkLabel(
+        DownloadMenu_UploadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
+    )
+    DownloadMenu_UploadFiles_Label.pack(
+        pady=(5, 0), padx=10, fill="x", expand=True, side=TOP
+    )
+
+    DownloadMenu_UploadFiles_Button = customtkinter.CTkButton(
+        master=DownloadMenu_UploadFilesButton_Frame,
+        text="Download.",
+        command=DownloadSelected,
+    )
+    DownloadMenu_UploadFiles_Button.pack(
+        pady=(0, 10), padx=10, fill="x", expand=True, side=BOTTOM
+    )
+
+    DownloadMenu.protocol(
+        "WM_DELETE_WINDOW", KombinasiFungsi(UpdateTheCount, DownloadMenu.destroy)
+    )
+
+    DarkMyWindowTitleBar(DownloadMenu)
+    CenterMyWindow(DownloadMenu)
+    DownloadMenu.mainloop()
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            DownloadFolder,
+            DownloadMenu,
+            DownloadMenu_Frame,
+            DownloadMenu_ListBox,
+            DownloadMenu_ListBox_Frame,
+            DownloadMenu_ListBox_ScrollBar,
+            DownloadMenu_OpenDirectory,
+            DownloadMenu_Refresh,
+            DownloadMenu_SideBySideButton_Frame,
+            DownloadMenu_UploadFiles_Button,
+            DownloadMenu_UploadFiles_Label,
+            DownloadSelected,
+            OpenTheUploadDirectory,
+            RefreshLists,
+        )
+
+
+def ShowUploadMenu_GUI():
+    """Menampilkan GUI Menu Upload File"""
+    global UploadMenu, LastDATA
+
+    UploadFolder = "Upload Here"
+
+    def OpenTheUploadDirectory():
+        """Membuka Folder Upload"""
         OpenDirectory(UploadFolder)
 
     def RefreshLists():
-        UploadMenu_ListBox.delete(0, END)
-        ListsOnUploadFolder = os.listdir(UploadFolder)
-        ListsOnUploadFolder = [f for f in os.listdir(
-            UploadFolder) if os.path.isfile(os.path.join(UploadFolder, f))]
-        UploadMenu_ListBox.delete(0, END)
-        for i in ListsOnUploadFolder:
-            UploadMenu_ListBox.insert(END, i)
+        """Mengupdate Tampilan ListBox dari Window"""
+        try:
+            UploadMenu_ListBox.delete(0, END)
+            ListsOnUploadFolder = [
+                f
+                for f in os.listdir(UploadFolder)
+                if os.path.isfile(os.path.join(UploadFolder, f))
+            ]
+            for i in ListsOnUploadFolder:
+                UploadMenu_ListBox.insert(END, i)
+            UploadMenu_UploadFiles_Label.configure(
+                text=LastDATA,
+                font=("Segoe UI", 12),
+            )
+        except:
+            pass
+        finally:
+            pass
 
     def UploadSelected():
+        """Melakukan Upload Untuk File yang di Pilih pada ListBox"""
         for i in UploadMenu_ListBox.curselection():
-            print(UploadMenu_ListBox.get(i))
+            SendFileToServer(UploadMenu_ListBox.get(i))
+        UploadMenu_UploadFiles_Label.configure(
+            text=LastDATA,
+            font=("Segoe UI", 12),
+        )
 
     if UploadMenu:
         UploadMenu.destroy()
@@ -392,93 +849,322 @@ def ShowUploadMenu():
 
     UploadMenu = customtkinter.CTkToplevel(UploadDownload)
     UploadMenu.transient(UploadDownload)
-    UploadMenu.attributes('-topmost', True)
+    UploadMenu.attributes("-topmost", True)
     UploadMenu.iconbitmap("SriPandita-FTP-icon.ico")
-    UploadMenu.geometry("400x430")
-    UploadMenu.maxsize(400, 430)
-    UploadMenu.minsize(400, 430)
+    UploadMenu.geometry("400x450")
+    UploadMenu.maxsize(400, 450)
+    UploadMenu.minsize(400, 450)
     UploadMenu.resizable(False, False)
     UploadMenu.wm_title("Upload Files")
     UploadMenu.config(bg="#1a1a1a")
 
-    s = ttk.Style()
-    s.configure("TFrame", bg="#212121")
-    s.configure('Mine.TFrame', background='#212121')
-
     UploadMenu_Frame = customtkinter.CTkFrame(UploadMenu)
     UploadMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    UploadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(
-        UploadMenu_Frame)
+    UploadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
     UploadMenu_SideBySideButton_Frame.pack(side=TOP)
 
     UploadMenu_OpenDirectory = customtkinter.CTkButton(
-        master=UploadMenu_Frame, text="Open Directory", command=OpenTheUploadDirectory)
+        master=UploadMenu_Frame,
+        text="Buka Folder Upload",
+        command=OpenTheUploadDirectory,
+    )
     UploadMenu_OpenDirectory.pack(
-        pady=12, padx=10, expand=True, in_=UploadMenu_SideBySideButton_Frame, side=LEFT)
+        pady=12, padx=10, expand=True, in_=UploadMenu_SideBySideButton_Frame, side=LEFT
+    )
 
     UploadMenu_Refresh = customtkinter.CTkButton(
-        master=UploadMenu_Frame, text="Refresh", command=RefreshLists)
-    UploadMenu_Refresh.pack(pady=12, padx=10, expand=True,
-                            in_=UploadMenu_SideBySideButton_Frame, side=LEFT)
+        master=UploadMenu_Frame, text="Refresh", command=RefreshLists
+    )
+    UploadMenu_Refresh.pack(
+        pady=12, padx=10, expand=True, in_=UploadMenu_SideBySideButton_Frame, side=LEFT
+    )
 
     UploadMenu_ListBox_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
     UploadMenu_ListBox_Frame.pack(pady=12, padx=10, fill="both", expand=True)
 
     UploadMenu_ListBox_ScrollBar = customtkinter.CTkScrollbar(
-        UploadMenu_ListBox_Frame, width=15)
+        UploadMenu_ListBox_Frame, width=15
+    )
 
     UploadMenu_ListBox = tk.Listbox(
-        UploadMenu_ListBox_Frame, bg="#212121", fg="white", selectbackground="#1f538d", width=30, height=15, selectmode=SINGLE)
+        UploadMenu_ListBox_Frame,
+        bg="#212121",
+        fg="white",
+        selectbackground="#1f538d",
+        width=30,
+        height=15,
+        selectmode=SINGLE,
+    )
     RefreshLists()
     UploadMenu_ListBox.config(yscrollcommand=UploadMenu_ListBox_ScrollBar.set)
-    UploadMenu_ListBox.pack(pady=12, padx=(12, 0), side=LEFT,
-                            fill="both", expand=True)
+    UploadMenu_ListBox.pack(pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True)
 
     UploadMenu_ListBox_ScrollBar.configure(command=UploadMenu_ListBox.yview)
-    UploadMenu_ListBox_ScrollBar.pack(
-        padx=(0, 12), pady=12, side=RIGHT, fill='y')
+    UploadMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
 
-    UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(
-        UploadMenu_Frame)
-    UploadMenu_UploadFilesButton_Frame.pack(
-        side=BOTTOM, fill='both', expand=True)
+    UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
+    UploadMenu_UploadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
 
-    UploadMenu_UploadFiles = customtkinter.CTkButton(
-        master=UploadMenu_UploadFilesButton_Frame, text="Upload Now", command=UploadSelected)
-    UploadMenu_UploadFiles.pack(
-        pady=12, padx=10, fill='both', expand=True)
+    LastDATA = "Pilih File Untuk di Upload Ke Server"
+    UploadMenu_UploadFiles_Label = customtkinter.CTkLabel(
+        UploadMenu_UploadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
+    )
+    UploadMenu_UploadFiles_Label.pack(
+        pady=(5, 0), padx=10, fill="x", expand=True, side=TOP
+    )
 
-    UploadMenu.protocol("WM_DELETE_WINDOW", UploadMenu.destroy)
+    UploadMenu_UploadFiles_Button = customtkinter.CTkButton(
+        master=UploadMenu_UploadFilesButton_Frame,
+        text="Upload.",
+        command=UploadSelected,
+    )
+    UploadMenu_UploadFiles_Button.pack(
+        pady=(0, 10), padx=10, fill="x", expand=True, side=BOTTOM
+    )
+
+    UploadMenu.protocol(
+        "WM_DELETE_WINDOW", KombinasiFungsi(UpdateTheCount, UploadMenu.destroy)
+    )
 
     DarkMyWindowTitleBar(UploadMenu)
     CenterMyWindow(UploadMenu)
     UploadMenu.mainloop()
 
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            OpenTheUploadDirectory,
+            RefreshLists,
+            UploadFolder,
+            UploadMenu,
+            UploadMenu_Frame,
+            UploadMenu_ListBox,
+            UploadMenu_ListBox_Frame,
+            UploadMenu_ListBox_ScrollBar,
+            UploadMenu_OpenDirectory,
+            UploadMenu_Refresh,
+            UploadMenu_SideBySideButton_Frame,
+            UploadMenu_UploadFilesButton_Frame,
+            UploadMenu_UploadFiles_Button,
+            UploadMenu_UploadFiles_Label,
+            UploadSelected,
+        )
 
-def OpenDirectory(openThis):
-    path = openThis
-    path = os.path.realpath(path)
-    os.startfile(path)
+
+def ShowFilesListMenu_GUI():
+    """Menampilkan GUI Menu List Files Pada Server"""
+    global FilesListMenu, CLIENT_PORT, SecretSeparator, BUFFER_SIZE
+
+    def RefreshLists():
+        """Mengupdate Tampilan ListBox dari Window"""
+        TCP_IP = "127.0.0.1"
+        TCP_PORT = CLIENT_PORT
+
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.connect((TCP_IP, TCP_PORT))
+
+        PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
+        while not CheckPortAvailability(PORT_RANDOM_TRANSFER):
+            PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
+
+        HEADER = "GET_FILES_LIST"
+        SendThis = HEADER + SecretSeparator + str(PORT_RANDOM_TRANSFER)
+        Socket.send(SendThis.encode())
+
+        TCP_IP_TRANSFER = "127.0.0.1"
+        TCP_PORT_TRANSFER = PORT_RANDOM_TRANSFER
+
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.bind((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
+        Socket.listen(1)
+
+        while True:
+            Connection_Transfer, Address_Transfer = Socket.accept()
+
+            SaveTo = "FilesListClient.bin"
+            file = open(SaveTo, "wb")
+            line = Connection_Transfer.recv(BUFFER_SIZE)
+
+            while line:
+                file.write(line)
+                line = Connection_Transfer.recv(BUFFER_SIZE)
+
+            file.close()
+            Connection_Transfer.close()
+            Socket.close()
+            break
+
+        with open("FilesListClient.bin", "r") as f:
+            DATA = f.read()
+            f.close()
+
+        DATA = ast.literal_eval(DATA)
+
+        try:
+            FilesListMenu_ListBox.delete(0, END)
+            for i in DATA:
+                FilesListMenu_ListBox.insert(END, i)
+        except:
+            pass
+        finally:
+            pass
+
+    if FilesListMenu:
+        FilesListMenu.destroy()
+
+    FilesListMenu = customtkinter.CTkToplevel(UploadDownload)
+    FilesListMenu.transient(UploadDownload)
+    FilesListMenu.attributes("-topmost", True)
+    FilesListMenu.iconbitmap("SriPandita-FTP-icon.ico")
+    FilesListMenu.geometry("400x450")
+    FilesListMenu.maxsize(400, 450)
+    FilesListMenu.minsize(400, 450)
+    FilesListMenu.resizable(False, False)
+    FilesListMenu.wm_title("Upload Files")
+    FilesListMenu.config(bg="#1a1a1a")
+
+    FilesListMenu_Frame = customtkinter.CTkFrame(FilesListMenu)
+    FilesListMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
+
+    FilesListMenu_SideBySideButton_Frame = customtkinter.CTkFrame(FilesListMenu_Frame)
+    FilesListMenu_SideBySideButton_Frame.pack(side=TOP, fill="x", expand=True)
+
+    FilesListMenu_Refresh = customtkinter.CTkButton(
+        master=FilesListMenu_Frame, text="Refresh", command=RefreshLists
+    )
+    FilesListMenu_Refresh.pack(
+        pady=3,
+        padx=10,
+        expand=True,
+        in_=FilesListMenu_SideBySideButton_Frame,
+        side=LEFT,
+        fill="x",
+    )
+
+    FilesListMenu_ListBox_Frame = customtkinter.CTkFrame(FilesListMenu_Frame)
+    FilesListMenu_ListBox_Frame.pack(pady=3, padx=10, fill="both", expand=True)
+
+    FilesListMenu_ListBox_ScrollBar = customtkinter.CTkScrollbar(
+        FilesListMenu_ListBox_Frame, width=15
+    )
+
+    FilesListMenu_ListBox = tk.Listbox(
+        FilesListMenu_ListBox_Frame,
+        bg="#212121",
+        fg="white",
+        selectbackground="#1f538d",
+        width=30,
+        height=15,
+        selectmode=SINGLE,
+    )
+    RefreshLists()
+    FilesListMenu_ListBox.config(yscrollcommand=FilesListMenu_ListBox_ScrollBar.set)
+    FilesListMenu_ListBox.pack(
+        pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True
+    )
+
+    FilesListMenu_ListBox_ScrollBar.configure(command=FilesListMenu_ListBox.yview)
+    FilesListMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
+
+    FilesListMenu.protocol(
+        "WM_DELETE_WINDOW", KombinasiFungsi(UpdateTheCount, FilesListMenu.destroy)
+    )
+
+    DarkMyWindowTitleBar(FilesListMenu)
+    CenterMyWindow(FilesListMenu)
+    FilesListMenu.mainloop()
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            FilesListMenu,
+            FilesListMenu_Frame,
+            FilesListMenu_ListBox,
+            FilesListMenu_ListBox_Frame,
+            FilesListMenu_ListBox_ScrollBar,
+            FilesListMenu_Refresh,
+            FilesListMenu_SideBySideButton_Frame,
+            RefreshLists,
+        )
+
+
+def KombinasiFungsi(*funcs):
+    """Mengkombinasi Beberapa Fungsi"""
+
+    def FungsiTerkombinasi(*args, **kwargs):
+        """Mengkombinasi Beberapa Fungsi"""
+        for f in funcs:
+            f(*args, **kwargs)
+
+    return FungsiTerkombinasi
+
+
+def UpdateTheCount():
+    """Mengupdate Jumlah Statistik Download dan Upload Milik User pada Dashboard"""
+    global UploadDownload_Label, MyUsername, UploadCount, DownloadCount
+
+    GetDownloadUploadCount(MyUsername)
+    SecondMenuHeader = (
+        "Username: "
+        + MyUsername
+        + "\nUpload Count: "
+        + str(UploadCount)
+        + "\nDownload Count: "
+        + str(DownloadCount)
+    )
+    UploadDownload_Label.configure(text=SecondMenuHeader, font=("Segoe UI", 18))
 
 
 def FullExitClient():
+    """Fungsi Untuk Melakukan Exit Program Secara Menyeluruh"""
     try:
         root.destroy()
         LoginMenu.destroy()
         RegisterMenu.destroy()
         UploadDownload.destroy()
+        UploadMenu.destroy()
     except:
         pass
     finally:
+        HEADER = "LOGOUT_EXIT"
+        DATA = ""
+        SendThis = HEADER + SecretSeparator + str(DATA)
+
+        TCP_IP = "127.0.0.1"
+        TCP_PORT = CLIENT_PORT
+
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.connect((TCP_IP, TCP_PORT))
+        Socket.send(SendThis.encode())
+
+        Socket.close()
+
+        try:
+            pass
+        except:
+            pass
+        finally:
+            del (
+                DATA,
+                HEADER,
+                SendThis,
+                Socket,
+                TCP_IP,
+                TCP_PORT,
+            )
+
         exit()
 
 
 def CenterMyWindow(win):
-    """
-    centers a tkinter window
-    :param win: the main window or Toplevel window to center
-    """
+    """Memindahkan Window TKinter ke Tengah Layar"""
     win.update_idletasks()
     width = win.winfo_width()
     frm_width = win.winfo_rootx() - win.winfo_x()
@@ -488,15 +1174,28 @@ def CenterMyWindow(win):
     win_height = height + titlebar_height + frm_width
     x = win.winfo_screenwidth() // 2 - win_width // 2
     y = win.winfo_screenheight() // 2 - win_height // 2
-    win.geometry('{}x{}+{}+{}'.format(width, height, x, y))
+    win.geometry("{}x{}+{}+{}".format(width, height, x, y))
     win.deiconify()
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            frm_width,
+            height,
+            titlebar_height,
+            width,
+            win_height,
+            win_width,
+            x,
+            y,
+        )
 
 
 def DarkMyWindowTitleBar(window):
-    """
-    MORE INFO:
-    https://docs.microsoft.com/en-us/windows/win32/api/dwmapi/ne-dwmapi-dwmwindowattribute
-    """
+    """Mengubah Background dari Title Bar TKinter Menjadi Gelap"""
     window.update()
     DWMWA_USE_IMMERSIVE_DARK_MODE = 20
     set_window_attribute = ct.windll.dwmapi.DwmSetWindowAttribute
@@ -505,33 +1204,107 @@ def DarkMyWindowTitleBar(window):
     rendering_policy = DWMWA_USE_IMMERSIVE_DARK_MODE
     value = 2
     value = ct.c_int(value)
-    set_window_attribute(hwnd, rendering_policy,
-                         ct.byref(value), ct.sizeof(value))
+    set_window_attribute(hwnd, rendering_policy, ct.byref(value), ct.sizeof(value))
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (DWMWA_USE_IMMERSIVE_DARK_MODE, get_parent, hwnd, rendering_policy, value)
 
 
-# Main Program
-if __name__ == '__main__':
-    # Definisi SecretSeparator
+def CheckPortAvailability(Port_Number):
+    """Mengecek Apakah Port Tersedia atau Tidak
+
+    Args:
+        Port_Number (int): Nomor Port yang Akan Dicek
+
+    Returns:
+        Boolean: True jika Port Tersedia / False jika Port Sudah Dipakai
+    """
+    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        Socket.bind(("127.0.0.1", Port_Number))
+    except:
+        del Socket
+        return False
+    else:
+        Socket.close()
+        del Socket
+        return True
+
+
+def OpenDirectory(OpenThis):
+    """Membuka Folder
+
+    Args:
+        OpenThis (str): Alamat dari Folder yang Akan Dibuka
+    """
+    Path = OpenThis
+    Path = os.path.realpath(Path)
+    os.startfile(Path)
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (Path,)
+
+
+def FirstTimeConnectServer():
+    """Perintah yang Dijalankan Pada Client Saat Pertama Kali Tersambung ke Server"""
+    global CLIENT_PORT, BUFFER_SIZE
+
+    TCP_IP = "127.0.0.1"
+    TCP_PORT = 48632
+
+    try:
+        Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        Socket.connect((TCP_IP, TCP_PORT))
+    except ConnectionRefusedError:
+        print("Server Tidak Sedang Berjalan...")
+        exit()
+    else:
+        CLIENT_PORT = int(Socket.recv(BUFFER_SIZE).decode())
+
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            TCP_IP,
+            TCP_PORT,
+            Socket,
+        )
+
+
+if __name__ == "__main__":
+    CLIENT_PORT = 0
+    BUFFER_SIZE = 1024
     SecretSeparator = "!@#$%^&*"
-
-    # Definisi LastDATA
     LastDATA = ""
-
-    # Definisi LoginStatus dan Username
+    MyUsername = ""
     LoginStatus = False
-    MyUsername = ''
 
-    # Mengubah Tema Warna CustomTKInter
+    DownloadCount = 0
+    UploadCount = 0
+
     customtkinter.set_appearance_mode("dark")
     customtkinter.set_default_color_theme("dark-blue")
 
-    # Membuat Reference LoginMenu dan RegisterMenu
     LoginMenu = None
     RegisterMenu = None
     UploadDownload = None
     UploadMenu = None
+    FilesListMenu = None
+    DownloadMenu = None
+    UploadDownload_Label = None
 
-    # [Start] Main Menu #
+    FirstTimeConnectServer()
+
     root = customtkinter.CTk()
     root.iconbitmap("SriPandita-FTP-icon.ico")
     root.geometry("400x350")
@@ -543,30 +1316,61 @@ if __name__ == '__main__':
     root_Frame = customtkinter.CTkFrame(master=root)
     root_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    # LoginRegister_Label = customtkinter.CTkLabel(master=LoginRegister_Frame, text="SriPandita FTP Client",
-    #                                              font=("Segoe UI", 24))
-    # LoginRegister_Label.pack(pady=12, padx=25)
-
-    root_Image = customtkinter.CTkImage(light_image=Image.open("SriPandita FTP home.png"),
-                                        dark_image=Image.open(
-                                            "SriPandita FTP home.png"),
-                                        size=(200, 150))
-    root_ButtonImage = customtkinter.CTkButton(master=root_Frame, image=root_Image,
-                                               text="", border_width=0, corner_radius=0, fg_color="transparent",
-                                               state="disabled")
+    root_Image = customtkinter.CTkImage(
+        light_image=PIL.Image.open("SriPandita FTP home.png"),
+        dark_image=PIL.Image.open("SriPandita FTP home.png"),
+        size=(200, 150),
+    )
+    root_ButtonImage = customtkinter.CTkButton(
+        master=root_Frame,
+        image=root_Image,
+        text="",
+        border_width=0,
+        corner_radius=0,
+        fg_color="transparent",
+        state="disabled",
+    )
     root_ButtonImage.pack(pady=12, padx=10)
 
-    root_RegisterButton = customtkinter.CTkButton(master=root_Frame, text="Register",
-                                                  command=RegisterMenu_GUI)
+    root_RegisterButton = customtkinter.CTkButton(
+        master=root_Frame, text="Register", command=RegisterMenu_GUI
+    )
     root_RegisterButton.pack(pady=12, padx=10)
 
-    root_LoginButton = customtkinter.CTkButton(master=root_Frame, text="Login",
-                                               command=LoginMenu_GUI)
+    root_LoginButton = customtkinter.CTkButton(
+        master=root_Frame, text="Login", command=LoginMenu_GUI
+    )
     root_LoginButton.pack(pady=12, padx=10)
 
-    root.protocol("WM_DELETE_WINDOW", root.destroy)
+    root.protocol("WM_DELETE_WINDOW", FullExitClient)
 
     CenterMyWindow(root)
     root.mainloop()
 
-    # [End] Main Menu #
+    try:
+        pass
+    except:
+        pass
+    finally:
+        del (
+            BUFFER_SIZE,
+            CLIENT_PORT,
+            DownloadMenu,
+            FilesListMenu,
+            LastDATA,
+            LoginMenu,
+            LoginStatus,
+            MyUsername,
+            RegisterMenu,
+            SecretSeparator,
+            UploadDownload,
+            UploadMenu,
+            root,
+            root_ButtonImage,
+            root_Frame,
+            root_Image,
+            root_LoginButton,
+            root_RegisterButton,
+        )
+
+    exit()
