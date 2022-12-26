@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.0.9"
+__version__ = "0.1.0"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -24,13 +24,13 @@ __email__ = [
     "haidarx@student.telkomuniversity.ac.id",
     "hiksal@student.telkomuniversity.ac.id",
 ]
-__status__ = "Production"
+__status__ = "Release"
 
 import ast
 import os
-import random
 import socket
 import threading
+from datetime import datetime
 from sys import exit
 from time import sleep
 
@@ -42,538 +42,466 @@ finally:
     pass
 
 
-def GiveDownloadUploadCount(USERNAME, Connection):
-    """Mengirim Statistik Download dan Upload dari User
+def GiveDownloadUploadCount(Connection: socket.socket, Address: tuple, Username: str):
+    """Mengirim statistik download dan upload dari user.
 
     Args:
-        USERNAME (str): Username yang Akan Dikirim Statistik Download dan Uploadnya
-        Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+        Username (str): Username yang akan dikirim statistik download dan uploadnya.
     """
     CheckThis = "Account.bin"
     if not os.path.exists(CheckThis):
-        File = open(CheckThis, "w")
-        File.write("[]")
-        File.close()
+        with open(CheckThis, mode="w") as File:
+            File.write("[]")
 
-    Read = open(CheckThis, "r")
-    ReadString = str(Read.read())
-    Read.close()
+    with open(CheckThis, mode="r") as Read:
+        ReadString = str(Read.read())
+
     ReadString = ast.literal_eval(ReadString)
 
     User_Stats = []
-    try:
-        for count, value in enumerate(ReadString):
-            if USERNAME == value[0]:
-                User_Stats.append(ReadString[count][2])
-                User_Stats.append(ReadString[count][3])
-    finally:
-        pass
+    for count, value in enumerate(ReadString):
+        if Username == value[0]:
+            User_Stats.append(ReadString[count][2])
+            User_Stats.append(ReadString[count][3])
 
-    HEADER = "GIVE_STATS"
-    SendThis = HEADER + SecretSeparator + str(User_Stats)
+    HEADER = "SERVER_SENDING_STATS"
+    SendThis = str(HEADER + SecretSeparator + str(User_Stats))
     Connection.send(SendThis.encode())
 
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
-def ReceiveFileFromClient(FileName, Username, Connection):
-    """Menerima File dari Client
+
+def ReceiveFileFromClient(
+    Connection: socket.socket, Address: tuple, FileName: str, Username: str
+):
+    """Menerima file dari client.
 
     Args:
-        FileName (str): Nama File yang Akan Diterima
-        Username (str): Username yang Mengirim File
-        Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+        FileName (str): Nama file yang dikirim client.
+        Username (str): Username yang mengirim file.
     """
-    global BUFFER_SIZE, LastDATA, SecretSeparator
-
-    PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
-    while not CheckPortAvailability(PORT_RANDOM_TRANSFER):
-        PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
-
-    HEADER = "GIVE_PORT"
-    SendThis = HEADER + SecretSeparator + str(PORT_RANDOM_TRANSFER)
+    HEADER = "SERVER_RECEIVE_READY"
+    SendThis = str(HEADER + SecretSeparator + str(ServerPort))
     Connection.send(SendThis.encode())
 
-    TCP_IP_TRANSFER = "127.0.0.1"
-    TCP_PORT_TRANSFER = PORT_RANDOM_TRANSFER
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
     CheckThis = "Database"
     if not os.path.exists(CheckThis):
         os.mkdir(CheckThis)
 
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.bind((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
-    s.listen(1)
+    SaveTo = "Database\\" + FileName
+    File = open(SaveTo, "wb")
+    Line = Connection.recv(BUFFER_SIZE)
 
-    while True:
-        Connection_Transfer, Address_Transfer = s.accept()
-
-        SaveTo = "Database\\" + FileName
-        File = open(SaveTo, "wb")
-        Line = Connection_Transfer.recv(BUFFER_SIZE)
-
-        while Line:
+    SecretSeparatorByte = bytes(SecretSeparator, "utf-8")
+    while Line:
+        LineSTR = bytearray(Line).find(SecretSeparatorByte)
+        if LineSTR == -1:
             File.write(Line)
-            Line = Connection_Transfer.recv(BUFFER_SIZE)
+            Line = Connection.recv(BUFFER_SIZE)
+        else:
+            File.write(bytes(bytearray(Line).replace(SecretSeparatorByte, b"")))
+            break
 
-        File.close()
-        Connection_Transfer.close()
-        s.close()
-        break
+    File.close()
 
     PlusOneUpload(Username)
 
-    try:
-        HEADER = "UPLOAD_SUCCES"
-        LastDATA = "File Telah Berhasil di Upload ke Server."
-        SendThis = HEADER + SecretSeparator + LastDATA
-        Connection.send(SendThis.encode())
-    except:
-        pass
-    finally:
-        del (
-            Address_Transfer,
-            Connection_Transfer,
-            File,
-            HEADER,
-            Line,
-            PORT_RANDOM_TRANSFER,
-            SaveTo,
-            SendThis,
-            TCP_IP_TRANSFER,
-            TCP_PORT_TRANSFER,
-        )
-
-
-def SendFileToClient(FileName, Username, Connection):
-    """Mengirim File ke Client
-
-    Args:
-        FileName (str): Nama File yang Akan Dikirim
-        Username (str): Username yang Menerima File
-        Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
-    """
-    global BUFFER_SIZE, LastDATA, SecretSeparator
-
-    PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
-    while not CheckPortAvailability(PORT_RANDOM_TRANSFER):
-        PORT_RANDOM_TRANSFER = random.randint(49152, 65535)
-
-    HEADER = "GIVE_PORT"
-    SendThis = HEADER + SecretSeparator + str(PORT_RANDOM_TRANSFER)
+    HEADER = "SERVER_RECEIVE_SUCCES"
+    LastDATA = "File Telah Berhasil di Upload ke Server."
+    SendThis = str(HEADER + SecretSeparator + LastDATA)
     Connection.send(SendThis.encode())
 
-    TCP_IP_TRANSFER = "127.0.0.1"
-    TCP_PORT_TRANSFER = PORT_RANDOM_TRANSFER
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
+
+def SendFileToClient(
+    Connection: socket.socket, Address: tuple, FileName: str, Username: str
+):
+    """Mengirim file ke client.
+
+    Args:
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+        FileName (str): Nama file yang diterima client.
+        Username (str): Username yang menerima file.
+    """
     CheckThis = "Database"
     if not os.path.exists(CheckThis):
         os.mkdir(CheckThis)
-
-    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    Socket.bind((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
-    Socket.listen(1)
-
-    Connection_Transfer, Address_Transfer = Socket.accept()
 
     FullPath = "Database\\" + FileName
     File = open(FullPath, "rb")
     Line = File.read(BUFFER_SIZE)
 
     while Line:
-        Connection_Transfer.send(Line)
+        Connection.send(Line)
         Line = File.read(BUFFER_SIZE)
 
+    DONE = bytes(SecretSeparator, "utf-8")
+    Connection.send(DONE)
+
     File.close()
-    Socket.close()
 
     PlusOneDownload(Username)
 
-    try:
-        HEADER = "DOWNLOAD_SUCCES"
-        LastDATA = "File Telah Berhasil di Download dari Server."
-        SendThis = HEADER + SecretSeparator + LastDATA
-        Connection.send(SendThis.encode())
-    except:
-        pass
-    finally:
-        del (
-            Address_Transfer,
-            CheckThis,
-            Connection_Transfer,
-            File,
-            FullPath,
-            HEADER,
-            Line,
-            PORT_RANDOM_TRANSFER,
-            SendThis,
-            Socket,
-            TCP_IP_TRANSFER,
-            TCP_PORT_TRANSFER,
-        )
+    ReceiveThis = Connection.recv(BUFFER_SIZE).decode()
+
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+    )
 
 
-def SendFilesListToClient(Port_Number):
-    """Mengirim List dari File yang Ada di Database ke Client
+def SendFilesListToClient(Connection: socket.socket, Address: tuple):
+    """Mengirim list dari file-file yang ada di database ke client.
 
     Args:
-        Port_Number (str): Port yang akan Digunakan pada Socket
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
     """
-    global BUFFER_SIZE, SecretSeparator
-
-    TCP_IP_TRANSFER = "127.0.0.1"
-    TCP_PORT_TRANSFER = int(Port_Number)
-
-    TransferSocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    TransferSocket.connect((TCP_IP_TRANSFER, TCP_PORT_TRANSFER))
-
-    ListsOnUploadFolder = []
-    DatabaseFolder = r"Database\\"
+    DatabaseFilesList = []
+    DatabaseFolder = "Database\\"
     for Path in os.scandir(DatabaseFolder):
         if Path.is_file():
-            ListsOnUploadFolder.append(Path.name)
+            DatabaseFilesList.append(Path.name)
 
-    with open("FilesListServer.bin", "w") as F:
-        F.write(str(ListsOnUploadFolder))
-        F.close()
+    with open("FilesListServer.bin", "w") as File:
+        File.write(str(DatabaseFilesList))
 
     File = open("FilesListServer.bin", "rb")
     Line = File.read(BUFFER_SIZE)
 
     while Line:
-        TransferSocket.send(Line)
+        Connection.send(Line)
         Line = File.read(BUFFER_SIZE)
 
-    try:
-        File.close()
-        TransferSocket.close()
-    except:
-        pass
-    finally:
-        os.remove("FilesListServer.bin")
-        del (
-            DatabaseFolder,
-            F,
-            File,
-            Line,
-            ListsOnUploadFolder,
-            TCP_IP_TRANSFER,
-            TCP_PORT_TRANSFER,
-            TransferSocket,
-        )
+    DONE = bytes(SecretSeparator, "utf-8")
+    Connection.send(DONE)
+
+    ReceiveThis = Connection.recv(BUFFER_SIZE).decode()
+
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+    )
+
+    File.close()
+
+    os.remove("FilesListServer.bin")
 
 
-def ServerRegister(DATA, Connection):
-    """Menangani Proses Registrasi Client
+def ServerHandleRegister(Connection: socket.socket, Address: tuple, Data: str):
+    """Menangani proses registrasi client.
 
     Args:
-        DATA (str): Data Akun Baru dan Password Baru Client
-        Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
+        Connection (socket.socket): Socket yang akan digunakan untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+        Data (str): Data akun baru dan password baru client.
     """
-    global LastDATA
-
-    NewUsername = ast.literal_eval(DATA)[0]
-    NewPassword = ast.literal_eval(DATA)[1]
+    NewUsername, NewPassword = ast.literal_eval(Data)
 
     CheckThis = "Account.bin"
     if not os.path.exists(CheckThis):
-        File = open(CheckThis, "w")
-        File.write("[]")
-        File.close()
+        with open(CheckThis, "w") as File:
+            File.write("[]")
 
-    Read = open(CheckThis, "r")
-    ReadString = str(Read.read())
-    Read.close()
-    ReadString = ast.literal_eval(ReadString)
-    Write = open(CheckThis, "w")
+    with open(CheckThis, "r") as File:
+        ReadStringTemp = ast.literal_eval(str(File.read()))
 
     FoundSameUsername = False
     try:
-        for i in ReadString:
+        for i in ReadStringTemp:
             if NewUsername == i[0]:
                 FoundSameUsername = True
     finally:
         pass
 
+    ReadString = []
+    ReadString.extend(ReadStringTemp)
+
     if not FoundSameUsername:
         AddThis = [NewUsername, NewPassword, 0, 0]
         ReadString.append(AddThis)
-        Write.write(str(ReadString))
-        Write.close()
+        with open(CheckThis, "w") as File:
+            File.write(str(ReadString))
 
-        HEADER = "REGISTER_SUCCES"
+        HEADER = "SERVER_HANDLE_REGISTER_SUCCES"
         LastDATA = "Anda Telah Berhasil Melakukan Registrasi."
-        SendThis = HEADER + SecretSeparator + LastDATA
+        SendThis = str(HEADER + SecretSeparator + LastDATA)
         Connection.send(SendThis.encode())
+
+        # * Logger
+        now = datetime.now()
+        print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
     else:
-        Write.write(str(ReadString))
-        Write.close()
-
-        HEADER = "REGISTER_FAILED"
+        HEADER = "SERVER_HANDLE_REGISTER_FAILED"
         LastDATA = "Username Sudah Terpakai!"
-        SendThis = HEADER + SecretSeparator + LastDATA
+        SendThis = str(HEADER + SecretSeparator + LastDATA)
         Connection.send(SendThis.encode())
 
-    try:
-        pass
-    except:
-        pass
-    finally:
-        del (
-            AddThis,
-            CheckThis,
-            FoundSameUsername,
-            HEADER,
-            NewPassword,
-            NewUsername,
-            Read,
-            ReadString,
-            SendThis,
-            Write,
+        # * Logger
+        now = datetime.now()
+        print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
 
 
-def ServerLogin(DATA, Connection):
-    """Menangani Proses Login Client
+def ServerHandleLogin(Connection: socket.socket, Address: tuple, Data: str):
+    """Menangani proses login client.
 
     Args:
-        DATA (str): Data Akun dan Password Client
-        Connection (socket): Socket yang Akan digunakan Untuk Berkomunikasi
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+        Data (str): Data akun dan password client.
     """
-    Username = ast.literal_eval(DATA)[0]
-    Password = ast.literal_eval(DATA)[1]
+    Username, Password = ast.literal_eval(Data)
 
     CheckThis = "Account.bin"
     if not os.path.exists(CheckThis):
-        File = open(CheckThis, "w")
-        File.write("[]")
-        File.close()
+        with open(CheckThis, "w") as File:
+            File.write("[]")
 
-    Read = open(CheckThis, "r")
-    ReadString = str(Read.read())
-    Read.close()
-    ReadString = ast.literal_eval(ReadString)
+    with open(CheckThis, "r") as File:
+        ReadStringTemp = ast.literal_eval(str(File.read()))
 
-    FoundUsername = False
-    ThePassword = ""
+    FoundUsername, ThePassword = False, ""
     try:
-        for i in ReadString:
+        for i in ReadStringTemp:
             if Username == i[0]:
                 FoundUsername = True
                 ThePassword = i[1]
     finally:
         pass
 
+    ReadString = []
+    ReadString.extend(ReadStringTemp)
     if FoundUsername and Password == ThePassword:
-        HEADER = "LOGIN_SUCCES"
+        HEADER = "SERVER_HANDLE_LOGIN_SUCCES"
         LastDATA = "Anda Telah Berhasil Melakukan Login."
         SendThis = HEADER + SecretSeparator + LastDATA
         Connection.send(SendThis.encode())
+
+        # * Logger
+        now = datetime.now()
+        print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
     else:
-        HEADER = "LOGIN_FAILED"
+        HEADER = "SERVER_HANDLE_LOGIN_FAILED"
         LastDATA = "Username dan/atau Password Salah!"
-        SendThis = HEADER + SecretSeparator + LastDATA
+        SendThis = str(HEADER + SecretSeparator + LastDATA)
         Connection.send(SendThis.encode())
 
-    try:
-        pass
-    except:
-        pass
-    finally:
-        del (
-            CheckThis,
-            FoundUsername,
-            HEADER,
-            Password,
-            Read,
-            ReadString,
-            SendThis,
-            ThePassword,
-            Username,
+        # * Logger
+        now = datetime.now()
+        print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
 
 
-def CheckPortAvailability(Port_Number):
-    """Mengecek Apakah Port Tersedia atau Tidak
+def PlusOneDownload(Username: str):
+    """Menambah counter download untuk username yang bersangkutan.
 
     Args:
-        Port_Number (int): Nomor Port yang Akan Dicek
-
-    Returns:
-        Boolean: True jika Port Tersedia / False jika Port Sudah Dipakai
-    """
-    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    try:
-        Socket.bind(("127.0.0.1", Port_Number))
-    except:
-        del Socket
-        return False
-    else:
-        Socket.close()
-        del Socket
-        return True
-
-
-def PlusOneDownload(USERNAME):
-    """Menambah Counter Download Untuk Username yang Bersangkutan
-
-    Args:
-        USERNAME (str): Username yang Akan Ditambah Counter Downloadnya
+        Username (str): Username yang akan ditambah counter downloadnya.
     """
     CheckThis = "Account.bin"
     if not os.path.exists(CheckThis):
-        File = open(CheckThis, "w")
-        File.write("[]")
-        File.close()
+        with open(CheckThis, "w") as File:
+            File.write("[]")
 
-    Read = open(CheckThis, "r")
-    ReadString = str(Read.read())
-    Read.close()
-    ReadString = ast.literal_eval(ReadString)
+    with open(CheckThis, "r") as File:
+        ReadString = ast.literal_eval(str(File.read()))
 
     try:
         for count, value in enumerate(ReadString):
-            if USERNAME == value[0]:
+            if Username == value[0]:
                 ReadString[count][2] = ReadString[count][2] + 1
     finally:
         pass
 
-    Write = open(CheckThis, "w")
-    Write.write(str(ReadString))
-    Write.close()
+    with open(CheckThis, "w") as File:
+        File.write(str(ReadString))
 
 
-def PlusOneUpload(USERNAME):
-    """Menambah Counter Upload Untuk Username yang Bersangkutan
+def PlusOneUpload(Username: str):
+    """Menambah counter upload untuk username yang bersangkutan.
 
     Args:
-        USERNAME (str): Username yang Akan Ditambah Counter Uploadnya
+        Username (str): Username yang akan ditambah counter uploadnya.
     """
     CheckThis = "Account.bin"
     if not os.path.exists(CheckThis):
-        File = open(CheckThis, "w")
-        File.write("[]")
-        File.close()
+        with open(CheckThis, "w") as File:
+            File.write("[]")
 
-    Read = open(CheckThis, "r")
-    ReadString = str(Read.read())
-    Read.close()
-    ReadString = ast.literal_eval(ReadString)
+    with open(CheckThis, "r") as File:
+        ReadString = ast.literal_eval(str(File.read()))
 
     try:
         for count, value in enumerate(ReadString):
-            if USERNAME == value[0]:
+            if Username == value[0]:
                 ReadString[count][3] = ReadString[count][3] + 1
     finally:
         pass
 
-    Write = open(CheckThis, "w")
-    Write.write(str(ReadString))
-    Write.close()
+    with open(CheckThis, "w") as File:
+        File.write(str(ReadString))
 
 
-def HandleClient(Port_Number):
-    """Menangani Setiap Request Client
+def FirstTimeClient(Connection: socket.socket, Address: tuple):
+    """Mengecek koneksi dengan client untuk pertama kali.
 
     Args:
-        Port_Number (int): Nomor Port yang Akan digunakan oleh Socket
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
     """
-    global SecretSeparator, BUFFER_SIZE, ServerRegister, ServerLogin
-    global ReceiveFileFromClient, GiveDownloadUploadCount
+    HEADER = "FIRST_TIME_CHECK"
+    SendThis = str(HEADER + SecretSeparator + "YNTKTS")
+    Connection.send(SendThis.encode())
 
-    TCP_IP = "127.0.0.1"
-    TCP_PORT = Port_Number
+    # * Logger
+    now = datetime.now()
+    print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
-    Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    Socket.bind((TCP_IP, TCP_PORT))
-    Socket.listen(1)
 
-    while 1:
-        ConnectionX, AddressX = Socket.accept()
+def HandleClient(Connection: socket.socket, Address: tuple):
+    """Menangani setiap request client.
 
-        ReceiveThis = ConnectionX.recv(BUFFER_SIZE).decode()
-        ReceiveThis = str(ReceiveThis)
-        HEADER, DATA = ReceiveThis.split(SecretSeparator, 1)
+    Args:
+        Connection (socket.socket): Socket yang akan digunakan Untuk berkomunikasi.
+        Address (tuple): Tuple yang berisi alamat dari client dan port yang digunakan.
+    """
+    while True:
+        ReceiveThis = str(Connection.recv(BUFFER_SIZE).decode())
+        if ReceiveThis != "":
+            # * Logger
+            now = datetime.now()
+            print(
+                f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+            )
 
-        if HEADER == "LOGOUT_EXIT":
-            break
-        elif HEADER == "REGISTER":
-            RegisterThread = threading.Thread(
-                target=ServerRegister,
-                args=(
-                    DATA,
-                    ConnectionX,
-                ),
-            )
-            RegisterThread.start()
-        elif HEADER == "LOGIN":
-            LoginThread = threading.Thread(
-                target=ServerLogin,
-                args=(
-                    DATA,
-                    ConnectionX,
-                ),
-            )
-            LoginThread.start()
-        elif HEADER == "GET_PORT_FOR_UPLOAD":
-            HEADER, DATA, USERNAME = ReceiveThis.split(SecretSeparator, 2)
-            ClientUpload = threading.Thread(
-                target=ReceiveFileFromClient,
-                args=(
-                    DATA,
-                    USERNAME,
-                    ConnectionX,
-                ),
-            )
-            ClientUpload.start()
-        elif HEADER == "GET_PORT_FOR_DOWNLOAD":
-            HEADER, DATA, USERNAME = ReceiveThis.split(SecretSeparator, 2)
-            ClientDownload = threading.Thread(
-                target=SendFileToClient,
-                args=(
-                    DATA,
-                    USERNAME,
-                    ConnectionX,
-                ),
-            )
-            ClientDownload.start()
-        elif HEADER == "GET_FILES_LIST":
-            ClientGetFilesList = threading.Thread(
-                target=SendFilesListToClient, args=(DATA,)
-            )
-            ClientGetFilesList.start()
-        elif HEADER == "GET_USER_STATS":
-            ClientGetStats = threading.Thread(
-                target=GiveDownloadUploadCount, args=(DATA, ConnectionX)
-            )
-            ClientGetStats.start()
-
-    try:
-        Connection.close()
-        Socket.close()
-    except:
-        pass
-    finally:
-        del (
-            AddressX,
-            ConnectionX,
-            DATA,
-            HEADER,
-            ReceiveThis,
-            Socket,
-            TCP_IP,
-            TCP_PORT,
-        )
+            HEADER, DATA = ReceiveThis.split(SecretSeparator, 1)
+            if HEADER == "CLIENT_LOGOUT_EXIT" or HEADER == "CLIENT_EXIT":
+                break
+            elif HEADER == "CLIENT_REQUEST_REGISTER":
+                RegisterThread = threading.Thread(
+                    target=ServerHandleRegister,
+                    args=(
+                        Connection,
+                        Address,
+                        DATA,
+                    ),
+                )
+                RegisterThread.start()
+                RegisterThread.join()
+            elif HEADER == "CLIENT_REQUEST_LOGIN":
+                LoginThread = threading.Thread(
+                    target=ServerHandleLogin,
+                    args=(
+                        Connection,
+                        Address,
+                        DATA,
+                    ),
+                )
+                LoginThread.start()
+                LoginThread.join()
+            elif HEADER == "CLIENT_REQUEST_UPLOAD":
+                HEADER, DATA, USERNAME = ReceiveThis.split(SecretSeparator, 2)
+                ClientUpload = threading.Thread(
+                    target=ReceiveFileFromClient,
+                    args=(
+                        Connection,
+                        Address,
+                        DATA,
+                        USERNAME,
+                    ),
+                )
+                ClientUpload.start()
+                ClientUpload.join()
+            elif HEADER == "CLIENT_REQUEST_DOWNLOAD":
+                HEADER, DATA, USERNAME = ReceiveThis.split(SecretSeparator, 2)
+                ClientDownload = threading.Thread(
+                    target=SendFileToClient,
+                    args=(
+                        Connection,
+                        Address,
+                        DATA,
+                        USERNAME,
+                    ),
+                )
+                ClientDownload.start()
+                ClientDownload.join()
+            elif HEADER == "CLIENT_REQUEST_FILES_LIST":
+                ClientGetFilesList = threading.Thread(
+                    target=SendFilesListToClient,
+                    args=(
+                        Connection,
+                        Address,
+                    ),
+                )
+                ClientGetFilesList.start()
+                ClientGetFilesList.join()
+            elif HEADER == "CLIENT_REQUEST_STATS":
+                ClientGetStats = threading.Thread(
+                    target=GiveDownloadUploadCount,
+                    args=(
+                        Connection,
+                        Address,
+                        DATA,
+                    ),
+                )
+                ClientGetStats.start()
+                ClientGetStats.join()
+            elif HEADER == "FIRST_TIME":
+                FirstTime = threading.Thread(
+                    target=FirstTimeClient,
+                    args=(
+                        Connection,
+                        Address,
+                    ),
+                )
+                FirstTime.start()
+                FirstTime.join()
+        else:
+            sleep(1)
+    Connection.close()
 
 
 if __name__ == "__main__":
+    """Main program"""
     try:
         sleep(2)
         pyi_splash.close()
     except:
         pass
-    finally:
-        pass
 
-    print("Server is Starting...")
+    now = datetime.now()
+    print(f"[{now}] [0.0.0.0:48632] [Server: Starting...]")
 
     BUFFER_SIZE = 1024
     SecretSeparator = "!@#$%^&*"
@@ -582,44 +510,28 @@ if __name__ == "__main__":
     if not os.path.exists(CheckThis):
         os.mkdir(CheckThis)
 
-    TCP_IP = "127.0.0.1"
-    TCP_PORT = 48632
+    ServerAddress, ServerPort = "0.0.0.0", 48632
 
     Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    Socket.bind((TCP_IP, TCP_PORT))
-    Socket.listen(1)
+    Socket.bind((ServerAddress, ServerPort))
+    Socket.listen(69)
 
-    print("Server is Listening...")
+    sleep(1)
+
+    now = datetime.now()
+    print(f"[{now}] [0.0.0.0:48632] [Server: Listening...]")
 
     while 1:
         Connection, Address = Socket.accept()
 
-        PORT_RANDOM = random.randint(49152, 65535)
-        while not CheckPortAvailability(PORT_RANDOM):
-            PORT_RANDOM = random.randint(49152, 65535)
+        HandleThatClient = threading.Thread(
+            target=HandleClient,
+            args=(
+                Connection,
+                Address,
+            ),
+        ).start()
 
-        Connection.send(str(PORT_RANDOM).encode())
-
-        HandleThatClient = threading.Thread(target=HandleClient, args=(PORT_RANDOM,))
-        HandleThatClient.start()
-
-    try:
-        pass
-    except:
-        pass
-    finally:
-        del (
-            Address,
-            BUFFER_SIZE,
-            CheckThis,
-            Connection,
-            HandleThatClient,
-            PORT_RANDOM,
-            SecretSeparator,
-            SecretSeparator,
-            Socket,
-            TCP_IP,
-            TCP_PORT,
-        )
+        Connection, Address = None, None
 
     exit()
