@@ -4,10 +4,10 @@
 ![image](https://i.ibb.co/PNJPLB6/Sri-Pandita-FTP-Icon.png)
 
 ## Member of the Sri Pandita Group
-- Muhammad Dimas Rifki Irianto      (1301204112)
-- Ahmad Fasya Adila                 (1301204231)
-- Haidaruddin Muhammad Ramdhan      (1301204459)
-- Muhammad Hiksal Daeng Jusuf Bauw  (1301204416)
+- Muhammad Dimas Rifki Irianto      (1301204112) [dimasrfq@student.telkomuniversity.ac.id]
+- Ahmad Fasya Adila                 (1301204231) [ahmadfasya@student.telkomuniversity.ac.id]
+- Haidaruddin Muhammad Ramdhan      (1301204459) [haidarx@student.telkomuniversity.ac.id]
+- Muhammad Hiksal Daeng Jusuf Bauw  (1301204416) [hiksal@student.telkomuniversity.ac.id]
 
 ## Deskripsi Tugas Besar
 FTP (Unggah dan Unduh File)
@@ -36,3 +36,12 @@ FTP (Unggah dan Unduh File)
 
 ## Bonus
 ![image](https://i.ibb.co/RcGRg8q/206999175-c74f7dbe-1f8d-471e-99aa-66da08a0e428.png)
+
+## Credits
+"Allah swt."
+"GitHub",
+"VisualStudioCode"
+"Ehmad Saeed: https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer"
+"Tom Schimansky: https://github.com/TomSchimansky/CustomTkinter"
+"Honest Abe: https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter"
+"Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa"
