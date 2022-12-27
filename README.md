@@ -16,9 +16,11 @@ FTP (Unggah dan Unduh File)
 
 ## App View
 - Client
+
 ![image](https://i.ibb.co/sCwWfz4/Client.png)
 
 - Server
+
 ![image](https://i.ibb.co/k2Sntz9/Server.png)
 
 ## Features
