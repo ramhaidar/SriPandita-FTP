@@ -1,4 +1,4 @@
-# TuBes_SisParTer_SriPandita
+# ** SriPandita FTP **
 
 ## SriPanditaFTP Logo
 ![image](https://i.ibb.co/PNJPLB6/Sri-Pandita-FTP-Icon.png)
