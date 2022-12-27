@@ -39,9 +39,11 @@ FTP (Unggah dan Unduh File)
 
 ## Credits
 - "Allah swt."
-- "GitHub",
+- "GitHub"
 - "VisualStudioCode"
 - "Ehmad Saeed: https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer"
 - "Tom Schimansky: https://github.com/TomSchimansky/CustomTkinter"
 - "Honest Abe: https://stackoverflow.com/questions/3352918/how-to-center-a-window-on-the-screen-in-tkinter"
 - "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa"
+
+# **© SriPandita 2022**
