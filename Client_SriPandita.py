@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -27,22 +27,24 @@ __email__ = [
 __status__ = "Release"
 
 
+import ast
+import ctypes
+import hashlib
+import logging
+import os
+import socket
+import tempfile
+import threading
+import tkinter as tk
 from datetime import datetime
 from sys import exit
 from time import sleep
 from tkinter import *
 from typing import Union
-import PIL.Image
-import ast
-import ctypes
+
 import customtkinter
-import hashlib
-import os
+import PIL.Image
 import requests
-import socket
-import threading
-import tempfile
-import tkinter as tk
 
 MessageBoxW = ctypes.windll.user32.MessageBoxW
 
@@ -73,12 +75,14 @@ def GetDownloadUploadCount(Username: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     RESPONSE = str(Socket.recv(BUFFER_SIZE).decode())
 
     # * Logger
     now = datetime.now()
     print(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
 
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
 
@@ -111,12 +115,14 @@ def SendFileToServer(FileName: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     RESPONSE = Socket.recv(BUFFER_SIZE).decode()
 
     # * Logger
     now = datetime.now()
     print(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
 
     HEADER = str(RESPONSE).split(SecretSeparator, 1)[0]
     if HEADER != "SERVER_RECEIVE_READY":
@@ -140,10 +146,13 @@ def SendFileToServer(FileName: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
 
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
 
-    threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+    threading.Thread(
+        target=ResetMessage, args=("Pilih File Untuk di Upload Ke Server.",)
+    ).start()
     LastDATA = DATA
 
 
@@ -211,6 +220,7 @@ def GetFileFromServer(FileName: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     SecretSeparatorByte = bytes(SecretSeparator, "utf-8")
 
@@ -229,7 +239,9 @@ def GetFileFromServer(FileName: str):
     File.close()
 
     if os.path.exists(SaveTo):
-        threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+        threading.Thread(
+            target=ResetMessage, args=("Pilih File Untuk di Download dari Server.",)
+        ).start()
         LastDATA = "File Telah Berhasil di Download dari Server."
 
         HEADER = "CLIENT_DOWNLOAD_SUCCES"
@@ -239,6 +251,7 @@ def GetFileFromServer(FileName: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     Socket.close()
 
@@ -256,17 +269,23 @@ def ClientRegister(NewUsername: str, NewPassword: str, PasswordCheck: str):
     TCP_IP, TCP_PORT = ServerAddress, ServerPort
 
     if len(NewUsername) == 0:
-        threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+        threading.Thread(
+            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+        ).start()
         LastDATA = "Username Tidak Boleh Kosong!"
         return
 
     if len(NewPassword) < 8:
-        threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+        threading.Thread(
+            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+        ).start()
         LastDATA = "Password Harus Memiliki 8 Karakter atau Lebih!"
         return
 
     if NewPassword != PasswordCheck:
-        threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+        threading.Thread(
+            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+        ).start()
         LastDATA = "Password tidak cocok!"
         return
 
@@ -283,6 +302,7 @@ def ClientRegister(NewUsername: str, NewPassword: str, PasswordCheck: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     RESPONSE = Socket.recv(BUFFER_SIZE).decode()
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
@@ -290,6 +310,7 @@ def ClientRegister(NewUsername: str, NewPassword: str, PasswordCheck: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
 
     Socket.close()
 
@@ -307,6 +328,20 @@ def ClientLogin(Username: str, Password: str):
 
     TCP_IP, TCP_PORT = ServerAddress, ServerPort
 
+    if len(Username) == 0:
+        threading.Thread(
+            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+        ).start()
+        LastDATA = "Username Tidak Boleh Kosong!"
+        return
+
+    if len(Password) == 0:
+        threading.Thread(
+            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+        ).start()
+        LastDATA = "Password Tidak Boleh Kosong!"
+        return
+
     Password = hashlib.md5(Password.encode("utf-8")).hexdigest()
 
     Socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -320,12 +355,14 @@ def ClientLogin(Username: str, Password: str):
     # * Logger
     now = datetime.now()
     print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
     RESPONSE = Socket.recv(BUFFER_SIZE).decode()
 
     # * Logger
     now = datetime.now()
     print(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
+    logging.info(f"[{now}] [In : {RESPONSE.split(SecretSeparator)[0]}]")
 
     HEADER, DATA = RESPONSE.split(SecretSeparator, 1)
 
@@ -336,7 +373,9 @@ def ClientLogin(Username: str, Password: str):
     if HEADER == "SERVER_HANDLE_LOGIN_FAILED":
         LoginStatus = False
 
-    threading.Thread(target=ResetMessage, args=(LastDATA,)).start()
+    threading.Thread(
+        target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+    ).start()
     LastDATA = DATA
 
     Socket.close()
@@ -585,6 +624,7 @@ def ShowDownloadMenu_GUI():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         SecretSeparatorByte = bytes(SecretSeparator, "utf-8")
 
@@ -610,6 +650,7 @@ def ShowDownloadMenu_GUI():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         try:
             DownloadMenu_ListBox.delete(0, END)
@@ -703,7 +744,7 @@ def ShowDownloadMenu_GUI():
     DownloadMenu_DownloadFilesButton_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
     DownloadMenu_DownloadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
 
-    LastDATA = "Pilih File Untuk di Download dari Server"
+    LastDATA = "Pilih File Untuk di Download dari Server."
     DownloadMenu_DownloadFiles_Label = customtkinter.CTkLabel(
         DownloadMenu_DownloadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
     )
@@ -833,7 +874,7 @@ def ShowUploadMenu_GUI():
     UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
     UploadMenu_UploadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
 
-    LastDATA = "Pilih File Untuk di Upload Ke Server"
+    LastDATA = "Pilih File Untuk di Upload Ke Server."
     UploadMenu_UploadFiles_Label = customtkinter.CTkLabel(
         UploadMenu_UploadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
     )
@@ -879,6 +920,7 @@ def ShowFilesListMenu_GUI():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         SecretSeparatorByte = bytes(SecretSeparator, "utf-8")
 
@@ -904,6 +946,7 @@ def ShowFilesListMenu_GUI():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         try:
             FilesListMenu_ListBox.delete(0, END)
@@ -1039,6 +1082,7 @@ def FullExitClient():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         Socket.close()
 
@@ -1110,12 +1154,14 @@ def FirstTimeConnectServer():
         # * Logger
         now = datetime.now()
         print(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [Out: {SendThis.split(SecretSeparator)[0]}]")
 
         ReceiveThis = str(Socket.recv(BUFFER_SIZE).decode())
 
         # * Logger
         now = datetime.now()
         print(f"[{now}] [In : {ReceiveThis.split(SecretSeparator)[0]}]")
+        logging.info(f"[{now}] [In : {ReceiveThis.split(SecretSeparator)[0]}]")
 
         Socket.close()
     except:
@@ -1206,6 +1252,14 @@ if __name__ == "__main__":
         pass
     finally:
         pass
+
+    logging.basicConfig(
+        filename="ClientLog.txt",
+        filemode="a",
+        format="%(message)s",
+        datefmt="%H:%M:%S",
+        level=logging.INFO,
+    )
 
     TemporaryDirectory = tempfile.TemporaryDirectory()
 

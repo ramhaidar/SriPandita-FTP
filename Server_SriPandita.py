@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -27,9 +27,11 @@ __email__ = [
 __status__ = "Release"
 
 import ast
+import logging
 import os
 import socket
 import threading
+
 from datetime import datetime
 from sys import exit
 from time import sleep
@@ -75,6 +77,9 @@ def GiveDownloadUploadCount(Connection: socket.socket, Address: tuple, Username:
     print(
         f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
     )
+    logging.info(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
 
 def ReceiveFileFromClient(
@@ -95,6 +100,9 @@ def ReceiveFileFromClient(
     # * Logger
     now = datetime.now()
     print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
+    logging.info(
         f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
     )
 
@@ -128,6 +136,9 @@ def ReceiveFileFromClient(
     # * Logger
     now = datetime.now()
     print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
+    logging.info(
         f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
     )
 
@@ -169,6 +180,9 @@ def SendFileToClient(
     print(
         f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
     )
+    logging.info(
+        f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+    )
 
 
 def SendFilesListToClient(Connection: socket.socket, Address: tuple):
@@ -202,6 +216,9 @@ def SendFilesListToClient(Connection: socket.socket, Address: tuple):
     # * Logger
     now = datetime.now()
     print(
+        f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+    )
+    logging.info(
         f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
     )
 
@@ -255,6 +272,9 @@ def ServerHandleRegister(Connection: socket.socket, Address: tuple, Data: str):
         print(
             f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
+        logging.info(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
     else:
         HEADER = "SERVER_HANDLE_REGISTER_FAILED"
         LastDATA = "Username Sudah Terpakai!"
@@ -264,6 +284,9 @@ def ServerHandleRegister(Connection: socket.socket, Address: tuple, Data: str):
         # * Logger
         now = datetime.now()
         print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
+        logging.info(
             f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
 
@@ -308,6 +331,9 @@ def ServerHandleLogin(Connection: socket.socket, Address: tuple, Data: str):
         print(
             f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
+        logging.info(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
     else:
         HEADER = "SERVER_HANDLE_LOGIN_FAILED"
         LastDATA = "Username dan/atau Password Salah!"
@@ -317,6 +343,9 @@ def ServerHandleLogin(Connection: socket.socket, Address: tuple, Data: str):
         # * Logger
         now = datetime.now()
         print(
+            f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+        )
+        logging.info(
             f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
         )
 
@@ -387,6 +416,9 @@ def FirstTimeClient(Connection: socket.socket, Address: tuple):
     print(
         f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
     )
+    logging.info(
+        f"[{now}] [{Address[0]}:{Address[1]}] [Out: {SendThis.split(SecretSeparator)[0]}]"
+    )
 
 
 def HandleClient(Connection: socket.socket, Address: tuple):
@@ -402,6 +434,9 @@ def HandleClient(Connection: socket.socket, Address: tuple):
             # * Logger
             now = datetime.now()
             print(
+                f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
+            )
+            logging.info(
                 f"[{now}] [{Address[0]}:{Address[1]}] [In : {ReceiveThis.split(SecretSeparator)[0]}]"
             )
 
@@ -500,8 +535,17 @@ if __name__ == "__main__":
     except:
         pass
 
+    logging.basicConfig(
+        filename="ServerLog.txt",
+        filemode="a",
+        format="%(message)s",
+        datefmt="%H:%M:%S",
+        level=logging.INFO,
+    )
+
     now = datetime.now()
     print(f"[{now}] [0.0.0.0:48632] [Server: Starting...]")
+    logging.info(f"[{now}] [0.0.0.0:48632] [Server: Starting...]")
 
     BUFFER_SIZE = 1024
     SecretSeparator = "!@#$%^&*"
@@ -520,6 +564,7 @@ if __name__ == "__main__":
 
     now = datetime.now()
     print(f"[{now}] [0.0.0.0:48632] [Server: Listening...]")
+    logging.info(f"[{now}] [0.0.0.0:48632] [Server: Listening...]")
 
     while 1:
         Connection, Address = Socket.accept()
@@ -533,5 +578,7 @@ if __name__ == "__main__":
         ).start()
 
         Connection, Address = None, None
+
+        sleep(1)
 
     exit()
