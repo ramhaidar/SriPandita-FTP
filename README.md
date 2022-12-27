@@ -33,3 +33,4 @@ FTP (Unggah dan Unduh File)
 - Melihat List dari File-File yang Ada di Server
 - LogOut dan Exit
 - Statistik Download dan Upload
+- Custom Server Address (Default 127.0.0.1)
