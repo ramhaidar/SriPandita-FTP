@@ -18,8 +18,8 @@ FTP (Unggah dan Unduh File)
 # App View
 Client
 
-![image](https://i.ibb.co/DWyP6wn/image.png)
-![image](https://i.ibb.co/d7Hgrft/image.png)
-![image](https://i.ibb.co/rmbXGYd/image.png)
-![image](https://i.ibb.co/BtrSWFt/image.png)
-![image](https://i.ibb.co/j6MQTVt/image.png)
+![image](https://i.ibb.co/sCwWfz4/Client.png)
+
+Server
+
+![image](https://i.ibb.co/k2Sntz9/Server.png)
