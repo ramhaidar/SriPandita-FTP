@@ -16,10 +16,20 @@ FTP (Unggah dan Unduh File)
 - Kemudian server dapat melihat client mana saja yang paling aktif mengunggah dan mengunduh file ke dan dari server.  
 
 # App View
-Client
+- Client
 
 ![image](https://i.ibb.co/sCwWfz4/Client.png)
 
-Server
+- Server
 
 ![image](https://i.ibb.co/k2Sntz9/Server.png)
+
+# Features
+
+- Registrasi Client
+- Login Client
+- Download File
+- Upload File
+- Melihat List dari File-File yang Ada di Server
+- LogOut dan Exit
+- Statistik Download dan Upload
