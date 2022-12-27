@@ -1,6 +1,6 @@
 # **SriPandita FTP**
 
-## SriPanditaFTP Logo
+<!-- ## SriPanditaFTP Logo -->
 ![image](https://i.ibb.co/PNJPLB6/Sri-Pandita-FTP-Icon.png)
 
 ## Member of the Sri Pandita Group
