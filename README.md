@@ -5,7 +5,7 @@
 
 ## Member of the Sri Pandita Group
 - Ahmad Fasya Adila                 (1301204231) [ahmadfasya@student.telkomuniversity.ac.id]
-- - Haidaruddin Muhammad Ramdhan      (1301204459) [haidarx@student.telkomuniversity.ac.id]
+- Haidaruddin Muhammad Ramdhan      (1301204459) [haidarx@student.telkomuniversity.ac.id]
 - Muhammad Dimas Rifki Irianto      (1301204112) [dimasrfq@student.telkomuniversity.ac.id]
 - Muhammad Hiksal Daeng Jusuf Bauw  (1301204416) [hiksal@student.telkomuniversity.ac.id]
 
