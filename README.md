@@ -1,7 +1,7 @@
 # **SriPandita FTP**
 
 <!-- ## SriPanditaFTP Logo -->
-![image](https://i.ibb.co/PNJPLB6/Sri-Pandita-FTP-Icon.png)
+![image](https://user-images.githubusercontent.com/49301219/210217612-4802bf5f-02d3-45cb-81e4-c6d35947355c.png)
 
 ## Member of the Sri Pandita Group
 - Muhammad Dimas Rifki Irianto      (1301204112) [dimasrfq@student.telkomuniversity.ac.id]
@@ -17,11 +17,11 @@ FTP (Unggah dan Unduh File)
 ## App View
 - Client
 
-![image](https://i.ibb.co/sCwWfz4/Client.png)
+![image](https://user-images.githubusercontent.com/49301219/210217581-dc1c8dd0-628f-4924-9912-dd4fedb60e09.png)
 
 - Server
 
-![image](https://i.ibb.co/k2Sntz9/Server.png)
+![image](https://user-images.githubusercontent.com/49301219/210217565-167f4918-4b33-4132-a08f-a5a3a44d826a.png)
 
 ## Features
 
@@ -35,7 +35,8 @@ FTP (Unggah dan Unduh File)
 - Custom Server Address (Default 127.0.0.1)
 
 ## Bonus
-![image](https://i.ibb.co/RcGRg8q/206999175-c74f7dbe-1f8d-471e-99aa-66da08a0e428.png)
+![image](https://user-images.githubusercontent.com/49301219/210217552-5df92b08-d5c2-4314-bba0-09ddc7ba5254.png)
+
 
 ## Credits
 - "Allah swt."
