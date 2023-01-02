@@ -11,7 +11,7 @@ __credits__ = [
     "Olikonsti: https://gist.github.com/Olikonsti/879edbf69b801d8519bf25e804cec0aa",
 ]
 __license__ = "GNU General Public License v3.0"
-__version__ = "0.1.1"
+__version__ = "0.1.2"
 __maintainer__ = [
     {"Muhammad Dimas Rifki Irianto": "1301204112"},
     {"Ahmad Fasya Adila": "1301204231"},
@@ -422,7 +422,7 @@ def LoginMenu_GUI():
     LoginMenu_UsernameEntry.pack(pady=12, padx=10)
 
     LoginMenu_PasswordEntry = customtkinter.CTkEntry(
-        master=LoginMenu_Frame, placeholder_text="Login", show="*"
+        master=LoginMenu_Frame, placeholder_text="Password", show="*"
     )
     LoginMenu_PasswordEntry.configure(justify="center")
     LoginMenu_PasswordEntry.pack(pady=12, padx=10)
