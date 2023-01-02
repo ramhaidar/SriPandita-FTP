@@ -39,7 +39,7 @@ FTP (Unggah dan Unduh File)
 
 
 ## Credits
-- "Allah swt."
+- "Allah SWT"
 - "GitHub"
 - "Visual Studio Code"
 - "Ehmad Saeed: https://github.com/justEhmadSaeed/Python-Sockets-File-Transfer"
