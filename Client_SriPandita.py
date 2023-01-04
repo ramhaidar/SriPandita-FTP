@@ -109,7 +109,8 @@ def SendFileToServer(FileName: str):
     Socket.connect((TCP_IP, TCP_PORT))
 
     HEADER = "CLIENT_REQUEST_UPLOAD"
-    SendThis = str(HEADER + SecretSeparator + FileName + SecretSeparator + MyUsername)
+    SendThis = str(HEADER + SecretSeparator + FileName +
+                   SecretSeparator + MyUsername)
     Socket.send(str(SendThis).encode())
 
     # * Logger
@@ -214,7 +215,8 @@ def GetFileFromServer(FileName: str):
     Socket.connect((TCP_IP, TCP_PORT))
 
     HEADER = "CLIENT_REQUEST_DOWNLOAD"
-    SendThis = str(HEADER + SecretSeparator + FileName + SecretSeparator + MyUsername)
+    SendThis = str(HEADER + SecretSeparator + FileName +
+                   SecretSeparator + MyUsername)
     Socket.send(SendThis.encode())
 
     # * Logger
@@ -240,7 +242,8 @@ def GetFileFromServer(FileName: str):
 
     if os.path.exists(SaveTo):
         threading.Thread(
-            target=ResetMessage, args=("Pilih File Untuk di Download dari Server.",)
+            target=ResetMessage, args=(
+                "Pilih File Untuk di Download dari Server.",)
         ).start()
         LastDATA = "File Telah Berhasil di Download dari Server."
 
@@ -270,21 +273,24 @@ def ClientRegister(NewUsername: str, NewPassword: str, PasswordCheck: str):
 
     if len(NewUsername) == 0:
         threading.Thread(
-            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+            target=ResetMessage, args=(
+                "Silahkan Masukkan Username dan Password.",)
         ).start()
         LastDATA = "Username Tidak Boleh Kosong!"
         return
 
     if len(NewPassword) < 8:
         threading.Thread(
-            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+            target=ResetMessage, args=(
+                "Silahkan Masukkan Username dan Password.",)
         ).start()
         LastDATA = "Password Harus Memiliki 8 Karakter atau Lebih!"
         return
 
     if NewPassword != PasswordCheck:
         threading.Thread(
-            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+            target=ResetMessage, args=(
+                "Silahkan Masukkan Username dan Password.",)
         ).start()
         LastDATA = "Password tidak cocok!"
         return
@@ -330,14 +336,16 @@ def ClientLogin(Username: str, Password: str):
 
     if len(Username) == 0:
         threading.Thread(
-            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+            target=ResetMessage, args=(
+                "Silahkan Masukkan Username dan Password.",)
         ).start()
         LastDATA = "Username Tidak Boleh Kosong!"
         return
 
     if len(Password) == 0:
         threading.Thread(
-            target=ResetMessage, args=("Silahkan Masukkan Username dan Password.",)
+            target=ResetMessage, args=(
+                "Silahkan Masukkan Username dan Password.",)
         ).start()
         LastDATA = "Password Tidak Boleh Kosong!"
         return
@@ -387,7 +395,8 @@ def LoginMenu_GUI():
 
     def LoginAndUpdate():
         """Perintah yang dijalankan ketika login button di tekan."""
-        ClientLogin(LoginMenu_UsernameEntry.get(), LoginMenu_PasswordEntry.get())
+        ClientLogin(LoginMenu_UsernameEntry.get(),
+                    LoginMenu_PasswordEntry.get())
         LoginMenu_Status.configure(
             text=LastDATA,
             font=("Segoe UI", 12),
@@ -435,6 +444,7 @@ def LoginMenu_GUI():
     LoginMenu_LoginButton = customtkinter.CTkButton(
         master=LoginMenu_Frame, text="Login", command=LoginAndUpdate
     )
+
     LoginMenu_LoginButton.pack(pady=12, padx=10)
 
     LoginMenu_Status.pack(pady=12, padx=10)
@@ -525,7 +535,8 @@ def SecondMenu_GUI():
         GetDownloadUploadCount(MyUsername)
 
         UploadDownload = customtkinter.CTkToplevel(root)
-        UploadDownload.iconbitmap(TemporaryDirectory.name + "/SriPandita-FTP.ico")
+        UploadDownload.iconbitmap(
+            TemporaryDirectory.name + "/SriPandita-FTP.ico")
         UploadDownload.geometry("400x550")
         UploadDownload.resizable(False, False)
         UploadDownload.wm_title("Main Menu")
@@ -588,7 +599,7 @@ def SecondMenu_GUI():
         UploadDownload_Quit = customtkinter.CTkButton(
             master=UploadDownload_Frame,
             text="LogOut and Exit",
-            command=KombinasiFungsi(UpdateTheCount, FullExitClient),
+            command=FullExitClient,
         )
         UploadDownload_Quit.pack(pady=12, padx=10)
 
@@ -636,7 +647,8 @@ def ShowDownloadMenu_GUI():
                     File.write(Line)
                     Line = Socket.recv(BUFFER_SIZE)
                 else:
-                    File.write(bytes(bytearray(Line).replace(SecretSeparatorByte, b"")))
+                    File.write(
+                        bytes(bytearray(Line).replace(SecretSeparatorByte, b"")))
                     break
 
         with open("FilesListClient.bin", "r") as File:
@@ -689,7 +701,8 @@ def ShowDownloadMenu_GUI():
     DownloadMenu_Frame = customtkinter.CTkFrame(DownloadMenu)
     DownloadMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    DownloadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
+    DownloadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(
+        DownloadMenu_Frame)
     DownloadMenu_SideBySideButton_Frame.pack(side=TOP)
 
     DownloadMenu_OpenDirectory = customtkinter.CTkButton(
@@ -733,20 +746,26 @@ def ShowDownloadMenu_GUI():
         selectmode=SINGLE,
     )
     RefreshLists()
-    DownloadMenu_ListBox.config(yscrollcommand=DownloadMenu_ListBox_ScrollBar.set)
+    DownloadMenu_ListBox.config(
+        yscrollcommand=DownloadMenu_ListBox_ScrollBar.set)
     DownloadMenu_ListBox.pack(
         pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True
     )
 
-    DownloadMenu_ListBox_ScrollBar.configure(command=DownloadMenu_ListBox.yview)
-    DownloadMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
+    DownloadMenu_ListBox_ScrollBar.configure(
+        command=DownloadMenu_ListBox.yview)
+    DownloadMenu_ListBox_ScrollBar.pack(
+        padx=(0, 12), pady=12, side=RIGHT, fill="y")
 
-    DownloadMenu_DownloadFilesButton_Frame = customtkinter.CTkFrame(DownloadMenu_Frame)
-    DownloadMenu_DownloadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
+    DownloadMenu_DownloadFilesButton_Frame = customtkinter.CTkFrame(
+        DownloadMenu_Frame)
+    DownloadMenu_DownloadFilesButton_Frame.pack(
+        side=BOTTOM, fill="x", expand=True)
 
     LastDATA = "Pilih File Untuk di Download dari Server."
     DownloadMenu_DownloadFiles_Label = customtkinter.CTkLabel(
-        DownloadMenu_DownloadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
+        DownloadMenu_DownloadFilesButton_Frame, text=LastDATA, font=(
+            "Segoe UI", 12)
     )
     DownloadMenu_DownloadFiles_Label.pack(
         pady=(5, 0), padx=10, fill="x", expand=True, side=TOP
@@ -762,7 +781,8 @@ def ShowDownloadMenu_GUI():
     )
 
     DownloadMenu.protocol(
-        "WM_DELETE_WINDOW", KombinasiFungsi(UpdateTheCount, DownloadMenu.destroy)
+        "WM_DELETE_WINDOW", KombinasiFungsi(
+            UpdateTheCount, DownloadMenu.destroy)
     )
 
     DarkMyWindowTitleBar(DownloadMenu)
@@ -829,7 +849,8 @@ def ShowUploadMenu_GUI():
     UploadMenu_Frame = customtkinter.CTkFrame(UploadMenu)
     UploadMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    UploadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
+    UploadMenu_SideBySideButton_Frame = customtkinter.CTkFrame(
+        UploadMenu_Frame)
     UploadMenu_SideBySideButton_Frame.pack(side=TOP)
 
     UploadMenu_OpenDirectory = customtkinter.CTkButton(
@@ -866,17 +887,21 @@ def ShowUploadMenu_GUI():
     )
     RefreshLists()
     UploadMenu_ListBox.config(yscrollcommand=UploadMenu_ListBox_ScrollBar.set)
-    UploadMenu_ListBox.pack(pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True)
+    UploadMenu_ListBox.pack(pady=12, padx=(
+        12, 0), side=LEFT, fill="both", expand=True)
 
     UploadMenu_ListBox_ScrollBar.configure(command=UploadMenu_ListBox.yview)
-    UploadMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
+    UploadMenu_ListBox_ScrollBar.pack(
+        padx=(0, 12), pady=12, side=RIGHT, fill="y")
 
-    UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(UploadMenu_Frame)
+    UploadMenu_UploadFilesButton_Frame = customtkinter.CTkFrame(
+        UploadMenu_Frame)
     UploadMenu_UploadFilesButton_Frame.pack(side=BOTTOM, fill="x", expand=True)
 
     LastDATA = "Pilih File Untuk di Upload Ke Server."
     UploadMenu_UploadFiles_Label = customtkinter.CTkLabel(
-        UploadMenu_UploadFilesButton_Frame, text=LastDATA, font=("Segoe UI", 12)
+        UploadMenu_UploadFilesButton_Frame, text=LastDATA, font=(
+            "Segoe UI", 12)
     )
     UploadMenu_UploadFiles_Label.pack(
         pady=(5, 0), padx=10, fill="x", expand=True, side=TOP
@@ -932,7 +957,8 @@ def ShowFilesListMenu_GUI():
                     File.write(Line)
                     Line = Socket.recv(BUFFER_SIZE)
                 else:
-                    File.write(bytes(bytearray(Line).replace(SecretSeparatorByte, b"")))
+                    File.write(
+                        bytes(bytearray(Line).replace(SecretSeparatorByte, b"")))
                     break
 
         with open("FilesListClient.bin", "r") as File:
@@ -972,7 +998,8 @@ def ShowFilesListMenu_GUI():
     FilesListMenu_Frame = customtkinter.CTkFrame(FilesListMenu)
     FilesListMenu_Frame.pack(pady=20, padx=60, fill="both", expand=True)
 
-    FilesListMenu_SideBySideButton_Frame = customtkinter.CTkFrame(FilesListMenu_Frame)
+    FilesListMenu_SideBySideButton_Frame = customtkinter.CTkFrame(
+        FilesListMenu_Frame)
     FilesListMenu_SideBySideButton_Frame.pack(side=TOP, fill="x", expand=True)
 
     FilesListMenu_Refresh = customtkinter.CTkButton(
@@ -1004,16 +1031,20 @@ def ShowFilesListMenu_GUI():
         selectmode=SINGLE,
     )
     RefreshLists()
-    FilesListMenu_ListBox.config(yscrollcommand=FilesListMenu_ListBox_ScrollBar.set)
+    FilesListMenu_ListBox.config(
+        yscrollcommand=FilesListMenu_ListBox_ScrollBar.set)
     FilesListMenu_ListBox.pack(
         pady=12, padx=(12, 0), side=LEFT, fill="both", expand=True
     )
 
-    FilesListMenu_ListBox_ScrollBar.configure(command=FilesListMenu_ListBox.yview)
-    FilesListMenu_ListBox_ScrollBar.pack(padx=(0, 12), pady=12, side=RIGHT, fill="y")
+    FilesListMenu_ListBox_ScrollBar.configure(
+        command=FilesListMenu_ListBox.yview)
+    FilesListMenu_ListBox_ScrollBar.pack(
+        padx=(0, 12), pady=12, side=RIGHT, fill="y")
 
     FilesListMenu.protocol(
-        "WM_DELETE_WINDOW", KombinasiFungsi(UpdateTheCount, FilesListMenu.destroy)
+        "WM_DELETE_WINDOW", KombinasiFungsi(
+            UpdateTheCount, FilesListMenu.destroy)
     )
 
     DarkMyWindowTitleBar(FilesListMenu)
@@ -1047,7 +1078,8 @@ def UpdateTheCount():
         + "\nDownload Count: "
         + str(DownloadCount)
     )
-    UploadDownload_Label.configure(text=SecondMenuHeader, font=("Segoe UI", 18))
+    UploadDownload_Label.configure(
+        text=SecondMenuHeader, font=("Segoe UI", 18))
 
 
 def FullExitClient():
