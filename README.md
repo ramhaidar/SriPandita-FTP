@@ -1,4 +1,5 @@
-# **SriPandita FTP**
+ # **SriPandita FTP** 
+ `yo ndak tau kok tanya saya`
 
 <!-- ## SriPanditaFTP Logo -->
 ![image](https://user-images.githubusercontent.com/49301219/210217612-4802bf5f-02d3-45cb-81e4-c6d35947355c.png)
@@ -34,9 +35,8 @@ FTP (Unggah dan Unduh File)
 - Statistik Download dan Upload
 - Custom Server Address (Default 127.0.0.1)
 
-## Bonus
-![image](https://user-images.githubusercontent.com/49301219/210217552-5df92b08-d5c2-4314-bba0-09ddc7ba5254.png)
-
+<!-- ## Bonus
+![image](https://user-images.githubusercontent.com/49301219/210217552-5df92b08-d5c2-4314-bba0-09ddc7ba5254.png) -->
 
 ## Credits
 - "Allah SWT"
